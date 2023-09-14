@@ -6,7 +6,7 @@
 #    By: zmrabet <marvin@42.fr>                     +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/09/13 07:21:01 by zmrabet           #+#    #+#              #
-#    Updated: 2023/09/13 07:21:02 by zmrabet          ###   ########.fr        #
+#    Updated: 2023/09/14 01:41:35 by zmrabet          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -22,7 +22,10 @@ Y       = $(shell tput -Txterm setaf 3)
 G       = $(shell tput -Txterm setaf 2)
 R       = $(shell tput -Txterm setaf 1)
 
-SERVER     = server/Server.cpp
+INCLUDES   = Components/Components.hpp \
+			 Components/Server/Server.hpp
+
+SERVER     = Components/Server/Server.cpp
 MAIN	   = main.cpp
 BIN        = obj/
 SRC        = $(SERVER) $(MAIN)
@@ -42,7 +45,7 @@ $(NAME) : $(OBJ)
 	@$(CC) $(CFLAGS) $(OBJ) -o $@
 	@echo "\t\t Generate Executable ( $(V)$@$(W) )\n"
 
-$(BIN)%.o : %.cpp
+$(BIN)%.o : %.cpp $(INCLUDES)
 	@mkdir -p $(@D)
 	@echo "$(V){$(W) Compiling ... $@ $(V)}$(W)"
 	@$(CC) $(CFLAGS) -c $< -o $@

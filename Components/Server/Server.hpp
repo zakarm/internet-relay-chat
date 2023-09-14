@@ -6,13 +6,13 @@
 /*   By: zmrabet <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/13 06:36:35 by zmrabet           #+#    #+#             */
-/*   Updated: 2023/09/13 06:46:06 by zmrabet          ###   ########.fr       */
+/*   Updated: 2023/09/14 04:48:36 by zmrabet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef SERVER_HPP
 #define SERVER_HPP
-#include "../ft_irc.hpp"
+#include "../Components.hpp"
 
 class Server{
     private :
@@ -39,6 +39,7 @@ class Server{
         void setPort(unsigned int port);
 
         void customException(std::string errorMessage);
+        void socketOptions();
         void bindServer();
         void listenServer();
         void acceptClients();

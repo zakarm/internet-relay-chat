@@ -6,11 +6,11 @@
 /*   By: zmrabet <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/13 06:36:25 by zmrabet           #+#    #+#             */
-/*   Updated: 2023/09/13 06:36:26 by zmrabet          ###   ########.fr       */
+/*   Updated: 2023/09/14 01:31:16 by zmrabet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "server/Server.hpp"
+#include "Components/Server/Server.hpp"
 
 int main(int argc, char *argv[])
 {
@@ -20,7 +20,6 @@ int main(int argc, char *argv[])
         {
             unsigned int port = atoi(argv[1]);
             std::string password = argv[2];
-            std::cout << port << password << std::endl;
             Server s(port);
             s.runServer();
         }

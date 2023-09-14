@@ -1,36 +1,24 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ft_irc.hpp                                         :+:      :+:    :+:   */
+/*   Client.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: zmrabet <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/09/13 06:36:59 by zmrabet           #+#    #+#             */
-/*   Updated: 2023/09/13 06:37:00 by zmrabet          ###   ########.fr       */
+/*   Created: 2023/09/14 01:43:11 by zmrabet           #+#    #+#             */
+/*   Updated: 2023/09/14 01:50:25 by zmrabet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef FT_IRC_HPP
-#define FT_IRC_HPP
+#ifndef CLIENT_HPP
+#define CLIENT_HPP
+#include "../Components.hpp"
 
-#ifndef RED
-#define RED "\033[31m"
+class Client
+{
+    private :
+        std::string nickName;
+        std::string userName;
+};
+
 #endif
-
-#ifndef DEFAULT
-#define DEFAULT "\033[39m"
-#endif
-
-#include <iostream>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <unistd.h>
-#include <cstdlib>
-#include <poll.h>
-#include <vector>
-#include <fcntl.h>
-#include <sys/types.h>
-#include <sstream>
-
-
-#endif //FT_IRC_HPP

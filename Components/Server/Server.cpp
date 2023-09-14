@@ -6,7 +6,7 @@
 /*   By: zmrabet <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/13 06:36:46 by zmrabet           #+#    #+#             */
-/*   Updated: 2023/09/13 07:20:21 by zmrabet          ###   ########.fr       */
+/*   Updated: 2023/09/14 04:53:45 by zmrabet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,6 +96,14 @@ void Server::customException(std::string errorMessage)
     throw std::runtime_error(errorMessage);
 }
 
+void Server::socketOptions()
+{
+    int reuse = 1;
+    if (setsockopt(this->serverSocket, SOL_SOCKET, SO_REUSEADDR, &reuse, 
+        sizeof(reuse)) == -1)
+        customException("Error: setsockopt SO_REUSEADDR failed");
+}
+
 void Server::bindServer()
 {
     if (bind(this->serverSocket, (const sockaddr *)&(this->serverAddr),
@@ -117,9 +125,7 @@ void Server::requests(int indexClient)
         bzero(buffer, 1024);
         int r = read(this->pfds[indexClient].fd, buffer, sizeof(buffer));
         if (r > 0)
-        {
             std::cout << buffer;
-        }
         else if (r == 0)
         {
             close(this->pfds[indexClient].fd);
@@ -139,25 +145,18 @@ void Server::acceptClients()
     {
         int numfds = poll(&(this->pfds[0]), this->pfds.size(), -1);
         if (numfds == -1)
-        {
-            close(this->serverSocket);
-            std::runtime_error("Error : poll failed");
-        }
-
+            customException("Error : poll failed");
         if (numfds == 0)
-        {
-            close(this->serverSocket);
-            std::runtime_error("poll timed out");
-        }
-
+            customException("Error : poll timed out");
         if (this->pfds[0].revents & POLLIN)
         {
             struct sockaddr_in clientAddr;
             unsigned int csocketLen = sizeof(clientAddr);
             int client_fd = accept(this->serverSocket, (sockaddr *)&clientAddr, (socklen_t *)&csocketLen);
+            if (client_fd == -1)
+                customException("Error : accept failed");
             this->pfds.push_back((struct pollfd){.fd = client_fd, .events = POLLIN});
         }
-
         for (size_t i = 0; i < this->pfds.size(); i++)
             requests(i);
     }
@@ -165,13 +164,9 @@ void Server::acceptClients()
 
 void Server::runServer()
 {
+    socketOptions();
     bindServer();
     listenServer();
     this->pfds.push_back((struct pollfd){.fd = this->serverSocket, .events = POLLIN});
     acceptClients();
 }
-
-
-
-
-
