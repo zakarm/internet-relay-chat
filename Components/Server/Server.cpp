@@ -6,7 +6,7 @@
 /*   By: zmrabet <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/13 06:36:46 by zmrabet           #+#    #+#             */
-/*   Updated: 2023/09/14 04:53:45 by zmrabet          ###   ########.fr       */
+/*   Updated: 2023/09/14 23:48:35 by zmrabet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -153,6 +153,8 @@ void Server::acceptClients()
             struct sockaddr_in clientAddr;
             unsigned int csocketLen = sizeof(clientAddr);
             int client_fd = accept(this->serverSocket, (sockaddr *)&clientAddr, (socklen_t *)&csocketLen);
+            std::cout << Utils::getTime() << " " << inet_ntoa(clientAddr.sin_addr) 
+                <<" has joined the server."<<std::endl;
             if (client_fd == -1)
                 customException("Error : accept failed");
             this->pfds.push_back((struct pollfd){.fd = client_fd, .events = POLLIN});

@@ -19,5 +19,6 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sstream>
-
+#include <arpa/inet.h>
+#include <map>
 #endif

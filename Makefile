@@ -6,7 +6,7 @@
 #    By: zmrabet <marvin@42.fr>                     +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/09/13 07:21:01 by zmrabet           #+#    #+#              #
-#    Updated: 2023/09/14 01:41:35 by zmrabet          ###   ########.fr        #
+#    Updated: 2023/09/14 23:45:08 by zmrabet          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -23,12 +23,14 @@ G       = $(shell tput -Txterm setaf 2)
 R       = $(shell tput -Txterm setaf 1)
 
 INCLUDES   = Components/Components.hpp \
-			 Components/Server/Server.hpp
+			 Components/Server/Server.hpp \
+			 Utils/Utils.hpp
 
 SERVER     = Components/Server/Server.cpp
+UTILS      = Utils/Utils.cpp
 MAIN	   = main.cpp
 BIN        = obj/
-SRC        = $(SERVER) $(MAIN)
+SRC        = $(UTILS) $(SERVER) $(MAIN)
 OBJ        = $(addprefix $(BIN),$(SRC:.cpp=.o))
 BANNER     =    "\t\t$(V)██$(W)╗ $(V)██████$(W)╗   $(V)██████$(W)╗\n"\
 				"\t\t$(V)██$(W)║ $(V)██$(W)╔══$(V)██$(W)╗ $(V)██$(W)╔════╝\n"\
