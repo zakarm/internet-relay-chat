@@ -6,7 +6,7 @@
 /*   By: zmrabet <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/14 01:43:11 by zmrabet           #+#    #+#             */
-/*   Updated: 2023/09/15 02:21:05 by zmrabet          ###   ########.fr       */
+/*   Updated: 2023/09/16 08:04:34 by zmrabet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,7 @@ class Client
         std::string realName;
         
     public :
+        Client(std::string nickName, std::string userName, std::string realName);
         std::string getNickName() const;
         void setNickName(std::string nickName);
 

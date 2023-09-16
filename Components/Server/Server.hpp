@@ -6,7 +6,7 @@
 /*   By: zmrabet <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/13 06:36:35 by zmrabet           #+#    #+#             */
-/*   Updated: 2023/09/14 23:46:49 by zmrabet          ###   ########.fr       */
+/*   Updated: 2023/09/16 08:04:21 by zmrabet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,6 @@ class Server{
         std::vector<struct pollfd> pfds;
 
     public :
-        Server();
         Server(int port);
         Server(const Server& sv);
         int getServerSocket() const;
