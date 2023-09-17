@@ -6,7 +6,7 @@
 /*   By: zmrabet <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/13 06:36:35 by zmrabet           #+#    #+#             */
-/*   Updated: 2023/09/16 08:04:21 by zmrabet          ###   ########.fr       */
+/*   Updated: 2023/09/17 00:04:56 by zmrabet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,13 +38,13 @@ class Server{
         void setPort(unsigned int port);
 
         void customException(std::string errorMessage);
+        void noBlockingFd();
         void socketOptions();
         void bindServer();
         void listenServer();
         void acceptClients();
         void requests(int indexClient);
         void runServer();
-
 };
 
 #endif

@@ -6,7 +6,7 @@
 /*   By: zmrabet <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/13 06:36:46 by zmrabet           #+#    #+#             */
-/*   Updated: 2023/09/16 08:04:14 by zmrabet          ###   ########.fr       */
+/*   Updated: 2023/09/17 00:25:54 by zmrabet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,7 @@ Server::Server(int port) : port(port)
     this->serverSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (this->serverSocket == -1)
         std::runtime_error("Error: socket failed");
+    memset(&this->serverAddr, 0, sizeof(this->serverAddr));
     this->serverAddr.sin_family = AF_INET;
     this->serverAddr.sin_port = htons(port);
     this->serverAddr.sin_addr.s_addr = INADDR_ANY;
@@ -91,6 +92,12 @@ void Server::customException(std::string errorMessage)
     throw std::runtime_error(errorMessage);
 }
 
+void Server::noBlockingFd()
+{
+    if (fcntl(this->serverSocket, F_SETFL, O_NONBLOCK) == -1)
+        customException("Error : fcntl failed");
+}
+
 void Server::socketOptions()
 {
     int reuse = 1;
@@ -108,7 +115,7 @@ void Server::bindServer()
 
 void Server::listenServer()
 {
-    if (listen(this->serverSocket, 5) == -1)
+    if (listen(this->serverSocket, SOMAXCONN) == -1)
         customException("Error : listen failed");
 }
 
@@ -162,6 +169,7 @@ void Server::acceptClients()
 void Server::runServer()
 {
     socketOptions();
+    noBlockingFd();
     bindServer();
     listenServer();
     this->pfds.push_back((struct pollfd){.fd = this->serverSocket, .events = POLLIN});
