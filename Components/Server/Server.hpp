@@ -6,7 +6,7 @@
 /*   By: zmrabet <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/13 06:36:35 by zmrabet           #+#    #+#             */
-/*   Updated: 2023/09/17 00:04:56 by zmrabet          ###   ########.fr       */
+/*   Updated: 2023/09/18 22:27:20 by zmrabet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,8 @@
 #define SERVER_HPP
 #include "../Components.hpp"
 #include "../../Utils/Utils.hpp"
+#include "../Client/Client.hpp"
+
 class Server{
     private :
         int serverSocket;
@@ -21,6 +23,7 @@ class Server{
         int socketLen;
         unsigned int port;
         std::vector<struct pollfd> pfds;
+        std::vector<Client> clients;
 
     public :
         Server(int port);
@@ -45,6 +48,9 @@ class Server{
         void acceptClients();
         void requests(int indexClient);
         void runServer();
+
+        void loginClient(size_t indexClient);
+        void runCommand(size_t indexClient, std::string command);
 };
 
 #endif

@@ -6,7 +6,7 @@
 /*   By: zmrabet <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/13 06:36:46 by zmrabet           #+#    #+#             */
-/*   Updated: 2023/09/17 00:25:54 by zmrabet          ###   ########.fr       */
+/*   Updated: 2023/09/18 22:59:08 by zmrabet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -125,19 +125,14 @@ void Server::requests(int indexClient)
     {
         char buffer[1024];
         bzero(buffer, 1024);
-        int r = read(this->pfds[indexClient].fd, buffer, sizeof(buffer));
-        if (r > 0)
-            std::cout << buffer;
-        else if (r == 0)
-        {
+        int r = recv(this->pfds[indexClient].fd, buffer, sizeof(buffer), 0);
+        if (r <= 0)
+        {   
             close(this->pfds[indexClient].fd);
             this->pfds.erase(this->pfds.begin() + indexClient);
         }
-    }
-    else if (this->pfds[indexClient].revents & (POLLHUP | POLLERR))
-    {
-        close(this->pfds[indexClient].fd);
-        this->pfds.erase(this->pfds.begin() + indexClient);
+        else
+            std::cout << buffer;
     }
 }
 
@@ -159,10 +154,11 @@ void Server::acceptClients()
                 <<" has joined the server."<<std::endl;
             if (client_fd == -1)
                 customException("Error : accept failed");
-            this->pfds.push_back((struct pollfd){.fd = client_fd, .events = POLLIN});
+            this->pfds.push_back((struct pollfd){.fd = client_fd, .events = POLLIN});            
         }
-        for (size_t i = 0; i < this->pfds.size(); i++)
-            requests(i);
+        else
+            for (size_t i = 0; i < this->pfds.size(); i++)
+                requests(i);
     }
 }
 
@@ -174,4 +170,21 @@ void Server::runServer()
     listenServer();
     this->pfds.push_back((struct pollfd){.fd = this->serverSocket, .events = POLLIN});
     acceptClients();
+}
+
+void Server::loginClient(size_t indexClient)
+{
+    if (indexClient + 1 >= this->clients.size())
+    {
+        this->clients.push_back(Client(this->pfds[indexClient].fd, "", "", ""));
+    }
+   
+    
+}
+
+void Server::runCommand(size_t indexClient, std::string command)
+{
+    // loginClient(indexClient);
+    (void) indexClient;
+    (void) command;
 }
