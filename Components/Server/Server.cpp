@@ -6,7 +6,7 @@
 /*   By: zmrabet <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/13 06:36:46 by zmrabet           #+#    #+#             */
-/*   Updated: 2023/09/18 22:59:08 by zmrabet          ###   ########.fr       */
+/*   Updated: 2023/09/19 05:39:08 by zmrabet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -132,7 +132,9 @@ void Server::requests(int indexClient)
             this->pfds.erase(this->pfds.begin() + indexClient);
         }
         else
-            std::cout << buffer;
+        {
+            runCommand(this->pfds[indexClient].fd, buffer);
+        }
     }
 }
 
@@ -140,11 +142,11 @@ void Server::acceptClients()
 {
     for (;;)
     {
-        int numfds = poll(&(this->pfds[0]), this->pfds.size(), -1);
+        int numfds = poll(&(this->pfds[0]), this->pfds.size(), 0);
         if (numfds == -1)
             customException("Error : poll failed");
         if (numfds == 0)
-            customException("Error : poll timed out");
+            continue;
         if (this->pfds[0].revents & POLLIN)
         {
             struct sockaddr_in clientAddr;
@@ -172,19 +174,8 @@ void Server::runServer()
     acceptClients();
 }
 
-void Server::loginClient(size_t indexClient)
+void Server::runCommand(size_t clientFd, std::string command)
 {
-    if (indexClient + 1 >= this->clients.size())
-    {
-        this->clients.push_back(Client(this->pfds[indexClient].fd, "", "", ""));
-    }
-   
-    
-}
-
-void Server::runCommand(size_t indexClient, std::string command)
-{
-    // loginClient(indexClient);
-    (void) indexClient;
+    (void) clientFd;
     (void) command;
 }

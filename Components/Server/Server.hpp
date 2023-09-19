@@ -6,7 +6,7 @@
 /*   By: zmrabet <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/13 06:36:35 by zmrabet           #+#    #+#             */
-/*   Updated: 2023/09/18 22:27:20 by zmrabet          ###   ########.fr       */
+/*   Updated: 2023/09/19 05:04:42 by zmrabet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,8 +49,7 @@ class Server{
         void requests(int indexClient);
         void runServer();
 
-        void loginClient(size_t indexClient);
-        void runCommand(size_t indexClient, std::string command);
+        void runCommand(size_t clientFd, std::string command);
 };
 
 #endif
