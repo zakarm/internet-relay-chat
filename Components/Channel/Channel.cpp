@@ -1,14 +1,13 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Channel.cpp                                        :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: zmrabet <marvin@42.fr>                     +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/09/15 02:17:02 by zmrabet           #+#    #+#             */
-/*   Updated: 2023/09/15 02:17:17 by zmrabet          ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "Channel.hpp"
 
+
+void Channel::setMode(int mode){this->mode |= mode;}
+void Channel::unsetMode(int mode) {this->mode &= ~mode;}
+
+Channel::Channel(std::string name, User &user) : name(name)
+{
+    this->users.push_back(user);
+    this->key = "";
+    this->topic = "";
+    this->mode = 0;
+}

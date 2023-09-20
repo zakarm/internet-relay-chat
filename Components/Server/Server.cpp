@@ -28,7 +28,7 @@ Server::Server(int port) : port(port)
     this->socketLen = sizeof(this->serverAddr);
 }
 
-Server::Server(const Server& sv)
+Server::Server(const Server &sv)
 {
     if (this != &sv)
     {
@@ -101,15 +101,15 @@ void Server::noBlockingFd()
 void Server::socketOptions()
 {
     int reuse = 1;
-    if (setsockopt(this->serverSocket, SOL_SOCKET, SO_REUSEADDR, &reuse, 
-        sizeof(reuse)) == -1)
+    if (setsockopt(this->serverSocket, SOL_SOCKET, SO_REUSEADDR, &reuse,
+                   sizeof(reuse)) == -1)
         customException("Error: setsockopt SO_REUSEADDR failed");
 }
 
 void Server::bindServer()
 {
     if (bind(this->serverSocket, (const sockaddr *)&(this->serverAddr),
-        this->socketLen) == -1)
+             this->socketLen) == -1)
         customException("Error : bind failed");
 }
 
@@ -126,13 +126,24 @@ void Server::requests(int indexClient)
         char buffer[1024];
         bzero(buffer, 1024);
         int r = recv(this->pfds[indexClient].fd, buffer, sizeof(buffer), 0);
-        if (r <= 0)
-        {   
+        if (r == 0)
+        {
             close(this->pfds[indexClient].fd);
             this->pfds.erase(this->pfds.begin() + indexClient);
+            std::cout << "Client : " << indexClient << " has left the server." << std::endl;
         }
         else
+        {
             std::cout << buffer;
+            
+            if (std::strcmp(buffer, "exit\n") == 0)
+                {
+                    close(this->pfds[indexClient].fd);
+                    this->pfds.erase(this->pfds.begin() + indexClient);
+                    std::cout << "Client : " << indexClient << " has left the server." << std::endl;
+                }
+        }
+        send(this->pfds[indexClient].fd, "reseaved\n", strlen("reseaved\n"), 0);
     }
 }
 
@@ -140,21 +151,21 @@ void Server::acceptClients()
 {
     for (;;)
     {
-        int numfds = poll(&(this->pfds[0]), this->pfds.size(), -1);
+        int numfds = poll(&(this->pfds[0]), this->pfds.size(), 0);
         if (numfds == -1)
             customException("Error : poll failed");
         if (numfds == 0)
-            customException("Error : poll timed out");
+            continue;
         if (this->pfds[0].revents & POLLIN)
         {
             struct sockaddr_in clientAddr;
             unsigned int csocketLen = sizeof(clientAddr);
             int client_fd = accept(this->serverSocket, (sockaddr *)&clientAddr, (socklen_t *)&csocketLen);
-            std::cout << Utils::getTime() << " " << inet_ntoa(clientAddr.sin_addr) 
-                <<" has joined the server."<<std::endl;
+            std::cout << Utils::getTime() << " " << inet_ntoa(clientAddr.sin_addr)
+                      << " has joined the server." << std::endl;
             if (client_fd == -1)
                 customException("Error : accept failed");
-            this->pfds.push_back((struct pollfd){.fd = client_fd, .events = POLLIN});            
+            this->pfds.push_back((struct pollfd){.fd = client_fd, .events = POLLIN});
         }
         else
             for (size_t i = 0; i < this->pfds.size(); i++)
@@ -178,13 +189,11 @@ void Server::loginClient(size_t indexClient)
     {
         this->clients.push_back(Client(this->pfds[indexClient].fd, "", "", ""));
     }
-   
-    
 }
 
 void Server::runCommand(size_t indexClient, std::string command)
 {
     // loginClient(indexClient);
-    (void) indexClient;
-    (void) command;
+    (void)indexClient;
+    (void)command;
 }

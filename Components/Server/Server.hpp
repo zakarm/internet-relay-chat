@@ -24,6 +24,7 @@ class Server{
         unsigned int port;
         std::vector<struct pollfd> pfds;
         std::vector<Client> clients;
+        std::queue<std::pair<int, std::string> > responses;
 
     public :
         Server(int port);
