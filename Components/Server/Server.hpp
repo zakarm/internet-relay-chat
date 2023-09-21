@@ -3,6 +3,7 @@
 #include "../Components.hpp"
 #include "../../Utils/Utils.hpp"
 #include "../Client/Client.hpp"
+#include "../Channel/Channel.hpp"
 
 class Server{
     private :
@@ -12,6 +13,7 @@ class Server{
         unsigned int port;
         std::vector<struct pollfd> pfds;
         std::vector<Client> clients;
+        std::vector<Channel> channels;
         std::queue<std::pair<int, std::string> > responses;
 
     public :

@@ -1,8 +1,10 @@
 
-#pragma once
-#include "../Components.hpp"
+#ifndef USER_HPP
+#define USER_HPP
+# include "../Components.hpp"
+# include "../Channel/Channel.hpp"
 
-// class Channel;
+class Channel;
 
 class User
 {
@@ -13,8 +15,9 @@ class User
         std::string hostName;
         std::string serverName;
         std::string realName;
+        bool isConnected;
         bool afk;
-        // std::vector<Channel&> channels;
+        std::map<std::string, Channel*> channels;
         
     public :
         User(int clientFd);
@@ -31,7 +34,7 @@ class User
         + this->serverName + " " + this->realName;}
         int getClientFd() const{ return this->clientFd;}
         bool getAfk() const{ return this->afk;}
-        // std::vector<Channel&> getChannels() const{ return this->channels;}
+        std::map<std::string, Channel*> getChannels() const{ return this->channels;}
 
         void setNickName(std::string nickName){ this->nickName = nickName;}
         void setUserName(std::string userName){ this->userName = userName;}
@@ -40,11 +43,12 @@ class User
         void setRealName(std::string realName){ this->realName = realName;}
         void setClientFd(int clientFd){ this->clientFd = clientFd;}
         void setAfk(bool afk){ this->afk = afk;}
-        // void setChannels(std::vector<Channel&> channels){ this->channels = channels;}
-
 
 
         void sendMessage(std::string message);
-        void joinChannel(std::string channelName);
-        void leaveChannel(std::string channelName);
+        void joinChannel(Channel* channel);
+        void leaveChannel(Channel* channel);
+        bool isInChannel(std::string channelName);
 };
+
+#endif
