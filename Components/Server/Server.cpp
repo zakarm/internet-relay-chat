@@ -16,7 +16,7 @@
 /*                        Constructors                        */
 /**************************************************************/
 
-Server::Server(int port) : port(port)
+Server::Server(int port, std::string password) : port(port), password(password)
 {
     this->serverSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (this->serverSocket == -1)
@@ -82,6 +82,16 @@ void Server::setPort(unsigned int port)
     this->port = port;
 }
 
+std::string Server::getPassword() const
+{
+    return this->password;
+}
+
+void Server::setPassword(std::string password)
+{
+    this->password = password;
+}
+
 /**************************************************************/
 /*                         Functions                          */
 /**************************************************************/
@@ -119,22 +129,46 @@ void Server::listenServer()
         customException("Error : listen failed");
 }
 
-void Server::requests(int indexClient)
+void Server::clientDisconnected(int indexClient)
 {
-    if (this->pfds[indexClient].revents & POLLIN)
+    close(this->pfds[indexClient].fd);
+    this->pfds.erase(this->pfds.begin() + indexClient);
+
+    if (this->buffring.find(this->pfds[indexClient].fd) != this->buffring.end()) 
+        this->buffring.erase(this->buffring.find(this->pfds[indexClient].fd));
+    if (this->nickNames.find(this->pfds[indexClient].fd) != this->nickNames.end())
+        this->nickNames.erase(this->nickNames.find(this->pfds[indexClient].fd));
+    if (this->clients.find(this->pfds[indexClient].fd) != this->clients.end())
+        this->clients.erase(this->clients.find(this->pfds[indexClient].fd));
+}
+
+void Server::joinBuffers(int indexClient, char *buffer)
+{
+    if (buffer[strlen(buffer) - 1] != '\n')
+        this->buffring[this->pfds[indexClient].fd] += buffer;
+    else
+    {
+        this->buffring[this->pfds[indexClient].fd] += buffer;
+        std::cout << this->buffring[this->pfds[indexClient].fd];
+        std::string command = this->buffring[this->pfds[indexClient].fd];
+        this->buffring[this->pfds[indexClient].fd].clear();
+        runCommand(this->pfds[indexClient].fd, command);
+    }
+}
+
+void Server::requests(int indexClient)
+{   
+    if (this->pfds[indexClient].revents & (POLLHUP | POLL_ERR))
+        clientDisconnected(indexClient);
+    else if (this->pfds[indexClient].revents & POLLIN)
     {
         char buffer[1024];
         bzero(buffer, 1024);
         int r = recv(this->pfds[indexClient].fd, buffer, sizeof(buffer), 0);
         if (r <= 0)
-        {   
-            close(this->pfds[indexClient].fd);
-            this->pfds.erase(this->pfds.begin() + indexClient);
-        }
+            clientDisconnected(indexClient);
         else
-        {
-            runCommand(this->pfds[indexClient].fd, buffer);
-        }
+            joinBuffers(indexClient, buffer);
     }
 }
 
@@ -156,7 +190,8 @@ void Server::acceptClients()
                 <<" has joined the server."<<std::endl;
             if (client_fd == -1)
                 customException("Error : accept failed");
-            this->pfds.push_back((struct pollfd){.fd = client_fd, .events = POLLIN});            
+            this->pfds.push_back((struct pollfd){.fd = client_fd, .events = POLLIN});
+            this->clients.insert(std::make_pair(client_fd, Client(client_fd)));  
         }
         else
             for (size_t i = 0; i < this->pfds.size(); i++)
@@ -172,6 +207,25 @@ void Server::runServer()
     listenServer();
     this->pfds.push_back((struct pollfd){.fd = this->serverSocket, .events = POLLIN});
     acceptClients();
+}
+
+
+bool Server::checkDuplicateNick(std::string nickName)
+{
+    std::map<int, std::string>::iterator it;
+    for (it = this->nickNames.begin(); it != this->nickNames.end(); it++)
+    {
+        if (it->second == nickName)
+            return false;
+    }
+    return true;
+}
+
+bool Server::checkPass(std::string password)
+{
+    if (password != this->password) 
+        return false;
+    return true;
 }
 
 void Server::runCommand(size_t clientFd, std::string command)
