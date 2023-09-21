@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
         {
             unsigned int port = atoi(argv[1]);
             std::string password = argv[2];
-            Server s(port);
+            Server s(port, password);
             s.runServer();
         }
         catch (std::exception &ex)
