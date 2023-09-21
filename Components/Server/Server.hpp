@@ -42,7 +42,7 @@ class Server{
         void listenServer();
         void acceptUser();
         void clientDisconnected(int indexClient);
-        void joinBuffers(int indexClient, char *buffer);
+        std::string joinBuffers(int indexClient, char *buffer);
         void requests(int indexClient);
         void runServer();
 
