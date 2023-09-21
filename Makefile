@@ -25,9 +25,10 @@ R       = $(shell tput -Txterm setaf 1)
 INCLUDES   = Components/Components.hpp \
 			 Components/Server/Server.hpp \
 			 Components/Client/Client.hpp \
-			 Utils/Utils.hpp
+			 Utils/Utils.hpp Components/User/User.hpp
 
-CLIENT     = Components/Client/Client.cpp
+CLIENT     = Components/User/User.cpp \
+			 Components/Client/Client.cpp
 SERVER     = Components/Server/Server.cpp
 UTILS      = Utils/Utils.cpp
 MAIN	   = main.cpp

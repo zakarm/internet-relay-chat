@@ -119,6 +119,26 @@ void Server::listenServer()
         customException("Error : listen failed");
 }
 
+#include <fstream>
+
+#include <random>
+
+std::string generateRandomString(int length) {
+    const std::string chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    std::string result;
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dis(0, chars.size() - 1);
+
+    for (int i = 0; i < length; ++i) {
+        result += chars[dis(gen)];
+    }
+
+    return result;
+}
+
+
 void Server::requests(int indexClient)
 {
     if (this->pfds[indexClient].revents & POLLIN)
@@ -143,7 +163,10 @@ void Server::requests(int indexClient)
                     std::cout << "Client : " << indexClient << " has left the server." << std::endl;
                 }
         }
-        send(this->pfds[indexClient].fd, "reseaved\n", strlen("reseaved\n"), 0);
+        
+        std::string str;
+        str = "PRIVMSG beadam :" + generateRandomString(12) + "\r\n";
+        send(this->pfds[indexClient].fd, str.c_str() , str.length(), 0);
     }
 }
 
