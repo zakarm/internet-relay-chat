@@ -14,7 +14,8 @@ NAME    = ircserv
 CC		= c++
 RM      = rm -rf
 VERSION = -std=c++98
-CFLAGS  = -Wall -Wextra -Werror $(VERSION)
+CFLAGS  = -Wall -Wextra -Werror  $(VERSION)
+DEBUG   = -DDEBUG_MODE
 
 V       = $(shell tput -Txterm setaf 5)
 W       = $(shell tput -Txterm setaf 7)
@@ -53,13 +54,13 @@ all : $(NAME)
 $(NAME) : $(OBJ)
 	@echo "\n"
 	@echo $(BANNER)
-	@$(CC) $(CFLAGS) $(OBJ) -o $@
+	@$(CC) $(CFLAGS)  $(OBJ) -o $@
 	@echo "\t\t Generate Executable ( $(V)$@$(W) )\n"
 
 $(BIN)%.o : %.cpp $(INCLUDES)
 	@mkdir -p $(@D)
 	@echo "$(V){$(W) Compiling ... $@ $(V)}$(W)"
-	@$(CC) $(CFLAGS) -c $< -o $@
+	@$(CC) $(CFLAGS) $(DEBUG) -c $< -o $@
 
 clean :
 	@for obj in $(OBJ); do \
