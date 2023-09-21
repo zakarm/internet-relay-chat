@@ -8,8 +8,8 @@ int main(int argc, char *argv[])
     {
         try
         {
-            unsigned int port = atoi(argv[1]);
-            std::string password = argv[2];
+            unsigned int port = atoi(argv[1]); // use iostream to check if it's a number
+            std::string password = argv[2]; 
             Server s(port, password);
             s.runServer();
         }

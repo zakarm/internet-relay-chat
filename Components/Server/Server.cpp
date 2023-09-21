@@ -6,6 +6,7 @@
 
 Server::Server(int port, std::string password) : port(port), password(password)
 {
+    
     this->serverSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (this->serverSocket == -1)
         std::runtime_error("Error: socket failed");
@@ -154,7 +155,7 @@ void Server::clientDisconnected(int indexClient)
 }
 
 
-void Server::joinBuffers(int indexClient, char *buffer)
+std::string Server::joinBuffers(int indexClient, char *buffer)
 {
     if (buffer[strlen(buffer) - 1] != '\n')
         this->buffring[this->pfds[indexClient].fd] += buffer;
@@ -166,8 +167,9 @@ void Server::joinBuffers(int indexClient, char *buffer)
         #ifdef DEBUG_MODE
             DEBUG_MSG("Client : " << indexClient << " has sent: " << command);
         #endif
-        runCommand(this->pfds[indexClient].fd, command);
+        return (command);
     }
+    return ("");
 }
 
 void Server::requests(int indexClient)
@@ -179,34 +181,24 @@ void Server::requests(int indexClient)
         char buffer[1024];
         memset(buffer, 0, sizeof(buffer));
         int r = recv(this->pfds[indexClient].fd, buffer, sizeof(buffer), 0);
-        if (r == 0)
-        {
-            close(this->pfds[indexClient].fd);
-            this->pfds.erase(this->pfds.begin() + indexClient);
-            #ifdef DEBUG_MODE
-                DEBUG_MSG("Client : " << indexClient << " has left the server." << std::endl);
-            #endif
-        }
-        else
-        {
-            if (std::strcmp(buffer, "exit\n") == 0)
-                {
-                    close(this->pfds[indexClient].fd);
-                    this->pfds.erase(this->pfds.begin() + indexClient);
-                    #ifdef DEBUG_MODE
-                        DEBUG_MSG("Client : " << indexClient << " has left the server." << std::endl);
-                    #endif
-                }
-        }
-        
         std::string str;
         str = "PRIVMSG beadam :" + generateRandomString(12) + "\r\n";
-        // send(this->pfds[indexClient].fd, str.c_str() , str.length(), 0);
+        send(this->pfds[indexClient].fd, str.c_str() , str.length(), 0);
         if (r <= 0)
             clientDisconnected(indexClient);
         else
             joinBuffers(indexClient, buffer);
     }
+    else if (this->pfds[indexClient].revents & POLLOUT)
+    {
+        if (!this->responses.empty())
+        {
+            std::pair<int, std::string> response = this->responses.front();
+            this->responses.pop();
+            send(response.first, response.second.c_str(), response.second.length(), 0);
+        }
+    }
+
 }
 
 void Server::acceptUser()
