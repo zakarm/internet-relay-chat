@@ -1,4 +1,3 @@
-
 #ifndef CHANNEL_HPP
 #define CHANNEL_HPP
 #include "../Components.hpp"
