@@ -1,9 +1,8 @@
 #include "Channel.hpp"
 
-
-void Channel::setMode(int mode){this->mode |= mode;}
-void Channel::unsetMode(int mode) {this->mode &= ~mode;}
-
+/**************************************************************/
+/*                        Constructors                        */
+/**************************************************************/
 Channel::Channel(std::string name, User &user) : name(name)
 {
     this->operators.insert(std::make_pair(user.getClientFd(), user));
@@ -12,6 +11,17 @@ Channel::Channel(std::string name, User &user) : name(name)
     this->mode = 0;
 }
 
+/**************************************************************/
+/*                    getters and setters                     */
+/**************************************************************/
+std::string Channel::getName() const
+{
+    return this->name;
+}
+
+/**************************************************************/
+/*                         Functions                          */
+/**************************************************************/
 void Channel::addUser(User &user)
 {
     if (this->users.find(user.getClientFd()) != this->users.end())
@@ -25,11 +35,12 @@ void Channel::removeUser(int clientFd)
     this->operators.erase(clientFd);
 }
 
-std::string Channel::getName() const
-{
-    return this->name;
-}
+void Channel::setMode(int mode){this->mode |= mode;}
+void Channel::unsetMode(int mode) {this->mode &= ~mode;}
 
+/**************************************************************/
+/*                         Destructor                         */
+/**************************************************************/
 Channel::~Channel()
 {
 }
