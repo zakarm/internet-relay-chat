@@ -140,6 +140,7 @@ void Server::clientDisconnected(int indexClient)
         this->nickNames.erase(this->nickNames.find(this->pfds[indexClient].fd));
     if (this->clients.find(this->pfds[indexClient].fd) != this->clients.end())
         this->clients.erase(this->clients.find(this->pfds[indexClient].fd));
+    std::cout << Utils::getTime() << " " << "has left the server." << std::endl;
 }
 
 void Server::joinBuffers(int indexClient, char *buffer)
@@ -191,7 +192,8 @@ void Server::acceptClients()
             if (client_fd == -1)
                 customException("Error : accept failed");
             this->pfds.push_back((struct pollfd){.fd = client_fd, .events = POLLIN});
-            this->clients.insert(std::make_pair(client_fd, Client(client_fd)));  
+            this->clients.insert(std::make_pair(client_fd, Client(client_fd)));
+            send(client_fd, "401 data data \r\n", 18, 0);
         }
         else
             for (size_t i = 0; i < this->pfds.size(); i++)
@@ -209,6 +211,12 @@ void Server::runServer()
     acceptClients();
 }
 
+bool Server::checkPass(std::string password)
+{
+    if (password != this->password) 
+        return false;
+    return true;
+}
 
 bool Server::checkDuplicateNick(std::string nickName)
 {
@@ -221,11 +229,46 @@ bool Server::checkDuplicateNick(std::string nickName)
     return true;
 }
 
-bool Server::checkPass(std::string password)
+void Server::loadErrorsReplies()
 {
-    if (password != this->password) 
-        return false;
-    return true;
+    this->errRep.insert(std::make_pair(401, ":No such nick/channel"));
+    this->errRep.insert(std::make_pair(402, ":No such server"));
+    this->errRep.insert(std::make_pair(403, ":No such channel"));
+    this->errRep.insert(std::make_pair(404, ":Cannot send to channel"));
+    this->errRep.insert(std::make_pair(405, ":You have joined too many channels"));
+    this->errRep.insert(std::make_pair(406, ":There was no such nickname"));
+    this->errRep.insert(std::make_pair(409, ":No origin specified"));
+    this->errRep.insert(std::make_pair(411, ":No recipient given"));
+    this->errRep.insert(std::make_pair(412, ":No text to send"));
+    this->errRep.insert(std::make_pair(417, ":Input line was too long"));
+    this->errRep.insert(std::make_pair(421, ":Unknown command"));
+    this->errRep.insert(std::make_pair(422, ":MOTD File is missing"));
+    this->errRep.insert(std::make_pair(431, ":No nickname given"));
+    this->errRep.insert(std::make_pair(432, ":Erroneus nickname"));
+    this->errRep.insert(std::make_pair(433, ":Nickname is already in use"));
+    this->errRep.insert(std::make_pair(436, ":Nickname collision KILL from"));
+    this->errRep.insert(std::make_pair(441, ":They aren't on that channel"));
+    this->errRep.insert(std::make_pair(442, ":You're not on that channel"));
+    this->errRep.insert(std::make_pair(443, ":is already on channel"));
+    this->errRep.insert(std::make_pair(451, ":You have not registered"));
+    this->errRep.insert(std::make_pair(461, ":Not enough parameters"));
+    this->errRep.insert(std::make_pair(462, ":You may not reregister"));
+    this->errRep.insert(std::make_pair(464, ":Password incorrect"));
+    this->errRep.insert(std::make_pair(465, ":You are banned from this server."));
+    this->errRep.insert(std::make_pair(471, ":Cannot join channel (+l)"));
+    this->errRep.insert(std::make_pair(472, ":is unknown mode char to me"));
+    this->errRep.insert(std::make_pair(473, ":Cannot join channel (+i)"));
+    this->errRep.insert(std::make_pair(474, ":Cannot join channel (+b)"));
+    this->errRep.insert(std::make_pair(475, ":Cannot join channel (+k)"));
+    this->errRep.insert(std::make_pair(476, ":Bad Channel Mask"));
+    this->errRep.insert(std::make_pair(481, ":Permission Denied- You're not an IRC operator"));
+    this->errRep.insert(std::make_pair(482, ":You're not channel operator"));
+    this->errRep.insert(std::make_pair(483, ":You cant kill a server!"));
+    this->errRep.insert(std::make_pair(491, ":No O-lines for your host"));
+    this->errRep.insert(std::make_pair(501, ":Unknown MODE flag"));
+    this->errRep.insert(std::make_pair(502, ":Cant change mode for other users"));
+    this->errRep.insert(std::make_pair(524, ":No help available on this topic"));
+    this->errRep.insert(std::make_pair(525, ":Key is not well-formed"));
 }
 
 void Server::runCommand(size_t clientFd, std::string command)
