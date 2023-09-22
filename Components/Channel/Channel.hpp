@@ -15,30 +15,30 @@ class Channel{
         std::vector<std::string> banList;
         int limit;
         int mode;
+
     public :
-        Channel(std::string name, User &user);
+        Channel(std::string name, User user);
         Channel(const Channel &channel);
         ~Channel();
         
-        void setMode(int mode);
-        void unsetMode(int mode);
-        
-        /// Getters
-        std::string getName() const;
-        std::string getKey() const;
-        std::string getTopic() const;
-        std::vector<User> getUsers() const;
-        std::vector<std::string> getBanList() const;
-        int getLimit() const;
-        int getMode() const;
 
-        /// Setters
+        std::string getName() const;
         void setName(std::string name);
+        std::string getKey() const;
         void setKey(std::string key);
+        std::string getTopic() const;
         void setTopic(std::string topic);
 
+        std::map<int, User> getUsers() const;
+        std::vector<std::string> getBanList() const;
+        int getLimit() const;
+        
+        int getMode() const;
+        void setMode(int mode);
 
-        void addUser(User &user);
+
+        void unsetMode(int mode);
+        void addUser(User user);
         void removeUser(int clientFd);
 
 };

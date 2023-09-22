@@ -23,3 +23,14 @@ std::string Utils::getTime()
     timeStream << RED << "[" << hour << ":" << min << "]" << DEFAULT;
     return timeStream.str();
 }
+
+
+std::string Utils::stolower(std::string data)
+{
+    for (size_t i = 0; i < data.size(); i++)
+    {
+        if (isalpha(data[i]))
+            data[i] = std::tolower(data[i]);
+    }
+    return data;
+}

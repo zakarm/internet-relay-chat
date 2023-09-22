@@ -18,7 +18,7 @@ class Server{
         std::map<int, std::string> buffring;
         std::map<int, std::string> nickNames;
         std::map<int, User> users;
-        std::map<int, Channel> channels;
+        std::vector<Channel> channels;
         std::map<int, std::string> errRep;
 
     public :
@@ -40,17 +40,20 @@ class Server{
         void socketOptions();
         void bindServer();
         void listenServer();
-        void acceptUser();
+        void acceptUsers();
         void clientDisconnected(int indexClient);
         std::string joinBuffers(int indexClient, char *buffer);
         void requests(int indexClient);
         void runServer();
         
-
         bool checkPass(std::string password);
         bool checkDuplicateNick(std::string nickName);
         void loadErrorsReplies();
-        void runCommand(size_t clientFd, std::string command);
+        void cmdPass(int clientFd, std::string data);
+        void cmdNick(int clientFd, std::string data);
+        void cmdUser(int clientFd, std::string data);
+        void authenticate(int clientFd, std::string data);
+        void runCommand(int clientFd, std::string command);
 };
 
 #endif

@@ -1,7 +1,8 @@
-
-
 #include "User.hpp"
 
+/**************************************************************/
+/*                        Constructors                        */
+/**************************************************************/
 User::User(int clientFd) : clientFd(clientFd)
 {
     this->nickName = "";
@@ -26,31 +27,63 @@ User::User(const User &user)
     }
 }
 
+/**************************************************************/
+/*                    getters and setters                     */
+/**************************************************************/
+int User::getClientFd() const{ return this->clientFd;}
+void User::setClientFd(int clientFd){ this->clientFd = clientFd;}
+std::string User::getNickName() const{ return this->nickName;}
+void User::setNickName(std::string nickName){ this->nickName = nickName;}
+std::string User::getUserName() const{ return this->userName;}
+void User::setUserName(std::string userName){ this->userName = userName;}
+std::string User::getServerName() const{ return this->serverName;}
+void User::setServerName(std::string serverName){ this->serverName = serverName;}
+std::string User::getHostName() const{ return this->hostName;}
+void User::setHostName(std::string hostName){ this->hostName = hostName;}
+std::string User::getRealName() const{ return this->realName; }
+void User::setRealName(std::string realName){ this->realName = realName;}
+bool User::getIsConnected() const{return this->isConnected;}
+void User::setIsConected(bool isConnected){ this->isConnected = isConnected; }
+bool User::getAfk() const{return this->afk; }
+void User::setAfk(bool afk){ this->afk = afk; }
 
-void User::joinChannel(Channel* channel)
-{
-    if(this->isInChannel(channel->getName()))
-        return;
-    //banlist
-    this->channels.insert(std::make_pair(channel->getName(), channel));
-    channel->addUser(*this);
+
+/**************************************************************/
+/*                         Functions                          */
+/**************************************************************/
+
+std::string User::getInfo() const
+{ 
+    return this->nickName + " " + \
+        this->userName + " " + this->hostName + " " \
+        + this->serverName + " " + this->realName;
 }
 
-void User::leaveChannel(Channel* channel)
-{
-    if (!this->isInChannel(channel->getName()))
-        return;
-    this->channels.erase(channel->getName());
-    channel->removeUser(this->clientFd);
-}
+// void User::joinChannel(Channel* channel)
+// {
+//     if(this->isInChannel(channel->getName()))
+//         return;
+//     this->channels.insert(std::make_pair(channel->getName(), channel));
+//     channel->addUser(this);
+//     (void) channel;
+// }
 
-bool User::isInChannel(std::string channelName)
-{
-    return this->channels.find(channelName) != this->channels.end();
-}
+// void User::leaveChannel(Channel* channel)
+// {
+//     if (!this->isInChannel(channel->getName()))
+//         return;
+//     this->channels.erase(channel->getName());
+//     channel->removeUser(this->clientFd);
+// }
+
+// bool User::isInChannel(std::string channelName)
+// {
+//     (void) channelName;
+//     return this->channels.find(channelName) != this->channels.end();
+//     return false;
+// }
 
 User::~User()
 {
-    for(std::map<std::string, Channel*>::iterator it = this->channels.begin(); it != this->channels.end(); it++)
-        it->second->removeUser(this->clientFd);
+    
 }

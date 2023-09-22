@@ -29,5 +29,6 @@ class Utils {
         Utils();
     public :
         static std::string getTime();
+        static std::string stolower(std::string data);
 };
 #endif //UTILS_HPP
