@@ -301,9 +301,6 @@ void Server::loadErrorsReplies()
 
 void Server::runCommand(size_t clientFd, std::string command)
 {
-    // loginClient(indexClient);
-    // (void)indexClient;
     (void)command;
     (void) clientFd;
-    (void) command;
 }
