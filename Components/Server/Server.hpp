@@ -16,7 +16,6 @@ class Server{
 
         std::queue<std::pair<int, std::string> > responses;
         std::map<int, std::string> buffring;
-        std::map<int, std::string> nickNames;
         std::map<int, User> users;
         std::vector<Channel> channels;
         std::map<int, std::string> errRep;

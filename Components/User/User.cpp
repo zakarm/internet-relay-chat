@@ -10,6 +10,8 @@ User::User(int clientFd) : clientFd(clientFd)
     this->hostName = "";
     this->serverName = "";
     this->realName = "";
+    this->isConnected = false;
+    this->setPass = false;
     this->afk = false;
 }
 
@@ -23,6 +25,8 @@ User::User(const User &user)
         this->hostName = user.getHostName();
         this->serverName = user.getServerName();
         this->realName = user.getRealName();
+        this->isConnected = user.getIsConnected();
+        this->setPass = user.getSetPass();
         this->afk = user.getAfk();
     }
 }
@@ -30,20 +34,22 @@ User::User(const User &user)
 /**************************************************************/
 /*                    getters and setters                     */
 /**************************************************************/
-int User::getClientFd() const{ return this->clientFd;}
-void User::setClientFd(int clientFd){ this->clientFd = clientFd;}
-std::string User::getNickName() const{ return this->nickName;}
-void User::setNickName(std::string nickName){ this->nickName = nickName;}
-std::string User::getUserName() const{ return this->userName;}
-void User::setUserName(std::string userName){ this->userName = userName;}
-std::string User::getServerName() const{ return this->serverName;}
-void User::setServerName(std::string serverName){ this->serverName = serverName;}
-std::string User::getHostName() const{ return this->hostName;}
-void User::setHostName(std::string hostName){ this->hostName = hostName;}
+int User::getClientFd() const{ return this->clientFd; }
+void User::setClientFd(int clientFd){ this->clientFd = clientFd; }
+std::string User::getNickName() const{ return this->nickName; }
+void User::setNickName(std::string nickName){ this->nickName = nickName; }
+std::string User::getUserName() const{ return this->userName; }
+void User::setUserName(std::string userName){ this->userName = userName; }
+std::string User::getServerName() const{ return this->serverName; }
+void User::setServerName(std::string serverName){ this->serverName = serverName; }
+std::string User::getHostName() const{ return this->hostName; }
+void User::setHostName(std::string hostName){ this->hostName = hostName; }
 std::string User::getRealName() const{ return this->realName; }
-void User::setRealName(std::string realName){ this->realName = realName;}
-bool User::getIsConnected() const{return this->isConnected;}
+void User::setRealName(std::string realName){ this->realName = realName; }
+bool User::getIsConnected() const{return this->isConnected; }
 void User::setIsConected(bool isConnected){ this->isConnected = isConnected; }
+bool User::getSetPass() const{ return this->setPass; }
+void User::setSetPass(bool setPass){ this->setPass = setPass; }
 bool User::getAfk() const{return this->afk; }
 void User::setAfk(bool afk){ this->afk = afk; }
 
