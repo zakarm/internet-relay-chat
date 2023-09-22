@@ -16,6 +16,7 @@ class User
         std::string serverName;
         std::string realName;
         bool isConnected;
+        bool setPass;
         bool afk;
         
     public :
@@ -37,6 +38,8 @@ class User
         void setRealName(std::string realName);
         bool getIsConnected() const;
         void setIsConected(bool isConnected);
+        bool getSetPass() const;
+        void setSetPass(bool setPass);
         bool getAfk() const;
         void setAfk(bool afk);
 
