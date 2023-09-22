@@ -27,6 +27,7 @@ class Server{
         std::map<int, std::string> buffring;
         std::map<int, std::string> nickNames;
         std::map<int, Client> clients;
+        std::map<int, std::string> errRep;
 
     public :
         Server(int port, std::string password);
@@ -52,9 +53,11 @@ class Server{
         void joinBuffers(int indexClient, char *buffer);
         void requests(int indexClient);
         void runServer();
+        
 
         bool checkPass(std::string password);
         bool checkDuplicateNick(std::string nickName);
+        void loadErrorsReplies();
         void runCommand(size_t clientFd, std::string command);
 };
 
