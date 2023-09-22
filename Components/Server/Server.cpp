@@ -193,7 +193,6 @@ void Server::acceptClients()
                 customException("Error : accept failed");
             this->pfds.push_back((struct pollfd){.fd = client_fd, .events = POLLIN});
             this->clients.insert(std::make_pair(client_fd, Client(client_fd)));
-            send(client_fd, "401 data data \r\n", 18, 0);
         }
         else
             for (size_t i = 0; i < this->pfds.size(); i++)
