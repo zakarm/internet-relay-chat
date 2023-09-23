@@ -252,6 +252,7 @@ void Server::cmdPass(int clientFd, std::string data)
         send(clientFd, err.str().c_str(), err.str().size(), 0);
     }
     this->users.find(clientFd)->second.setSetPass(true);
+    authenticate(clientFd);
 }
 
 void Server::cmdNick(int clientFd, std::string data)
@@ -268,14 +269,11 @@ void Server::cmdUser(int clientFd, std::string data)
     (void)data;
 }
 
-void Server::authenticate(int clientFd, std::string data)
+void Server::authenticate(int clientFd)
 {
-    std::stringstream ss(data);
-    std::string cmdName, cmdParam;
-    ss >> cmdName;
-    ss >> cmdParam;
-    if (Utils::stolower(cmdName) == "pass")
-        cmdPass(clientFd, cmdParam);
+    User u = this->users.find(clientFd)->second;
+    if (!u.getNickName().empty() && u.getSetPass())
+        this->users.find(clientFd)->second.setIsConected(true);
 }
 
 void Server::runCommand(int clientFd, std::string command)
