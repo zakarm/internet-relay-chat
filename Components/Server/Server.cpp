@@ -86,8 +86,6 @@ void Server::clientDisconnected(int indexClient)
 
     if (this->buffring.find(this->pfds[indexClient].fd) != this->buffring.end()) 
         this->buffring.erase(this->buffring.find(this->pfds[indexClient].fd));
-    if (this->nickNames.find(this->pfds[indexClient].fd) != this->nickNames.end())
-        this->nickNames.erase(this->nickNames.find(this->pfds[indexClient].fd));
     if (this->users.find(this->pfds[indexClient].fd) != this->users.end())
         this->users.erase(this->users.find(this->pfds[indexClient].fd));
     std::cout << Utils::getTime() << " " << "has left the server." << std::endl;
@@ -237,18 +235,21 @@ void Server::cmdPass(int clientFd, std::string data)
     
     if (data.empty())
     {
-        std::string err = std::to_string(461) + this->errRep.find(461)->second + "\r\n";
-        send(clientFd, err.c_str(), err.size(), 0);
+        std::stringstream err;
+        err << ":" << inet_ntoa(this->serverAddr.sin_addr) << " " << 461 << " PASS " << this->errRep.find(461)->second << "\r\n";
+        send(clientFd, err.str().c_str(), err.str().size(), 0);
     }
     else if (this->users.find(clientFd)->second.getIsConnected())
     {
-        std::string err = std::to_string(462) + this->errRep.find(462)->second + "\r\n";
-        send(clientFd, err.c_str(), err.size(), 0);
+        std::stringstream err;
+        err << ":" << inet_ntoa(this->serverAddr.sin_addr) << " " << 462 << " PASS " << this->errRep.find(462)->second << "\r\n";
+        send(clientFd, err.str().c_str(), err.str().size(), 0);
     }
     else if (!checkPass(data))
     {
-        std::string err = std::to_string(464) + this->errRep.find(464)->second + "\r\n";
-        send(clientFd, err.c_str(), err.size(), 0);
+        std::stringstream err;
+        err << ":" << inet_ntoa(this->serverAddr.sin_addr) << " " << 464 << " PASS " << this->errRep.find(464)->second << "\r\n";
+        send(clientFd, err.str().c_str(), err.str().size(), 0);
     }
     this->users.find(clientFd)->second.setSetPass(true);
 }
@@ -291,26 +292,6 @@ void Server::runCommand(int clientFd, std::string command)
             cmdNick(clientFd, cmdParam);
         else if (Utils::stolower(cmdName) == "user")
             cmdUser(clientFd, cmdParam);
-
-
-        // authenticate(clientFd, command);
-        // std::map<int, User>::iterator it = this->users.find(clientFd);
-        // if (it != this->users.end())
-        // {
-        //     it->second.setNickName("Zakariae");
-        //     this->channels.push_back(Channel("Channel" + std::to_string(clientFd), it->second));
-        // }
-        
-        // std::cout << "-------------------" << std::endl;
-        // for (size_t i = 0; i < this->channels.size(); i++)
-        // {
-        //     std::cout << this->channels[i].getName() << std::endl;
-        //     std::map<int, User>::iterator it;
-        //     std::map<int, User> data = this->channels[i].getUsers();
-        //     for (it = data.begin(); it != data.end(); it++)
-        //         std::cout << it->second.getNickName() << std::endl;
-        //     std::cout << "-------------------" << std::endl;
-        // }
     }
     
 }
