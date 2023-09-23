@@ -79,19 +79,24 @@ void Server::listenServer()
         customException("Error : listen failed");
 }
 
-void Server::clientDisconnected(int indexClient)
+void Server::clientDisconnected(int clientFd)
 {
 
-    close(this->pfds[indexClient].fd);
-    std::cout << Utils::getTime() << this->users.at(this->pfds[indexClient].fd).getNickName() << "has left the server." << std::endl;
-
-    if (this->buffring.find(this->pfds[indexClient].fd) != this->buffring.end()) 
-        this->buffring.erase(this->buffring.find(this->pfds[indexClient].fd));
-    if (this->users.find(this->pfds[indexClient].fd) != this->users.end())
-        this->users.erase(this->users.find(this->pfds[indexClient].fd));
+    close(clientFd);
+    std::cout << Utils::getTime() << this->users.at(clientFd).getNickName() << " has left the server." << std::endl;
+    if (this->buffring.find(clientFd) != this->buffring.end()) 
+        this->buffring.erase(this->buffring.find(clientFd));
+    if (this->users.find(clientFd) != this->users.end())
+        this->users.erase(this->users.find(clientFd));
     
-    this->pfds.erase(this->pfds.begin() + indexClient);
-    this->channels["general"].listUsers();
+    for (std::vector<struct pollfd>::iterator it = this->pfds.begin(); it != this->pfds.end(); it++)
+    {
+        if (it->fd == clientFd)
+        {
+            this->pfds.erase(it);
+            break;
+        }
+    }
 }
 
 
@@ -112,7 +117,7 @@ std::string Server::joinBuffers(int indexClient, char *buffer)
 void Server::requests(int indexClient)
 {   
     if (this->pfds[indexClient].revents & (POLLHUP | POLL_ERR))
-        clientDisconnected(indexClient);
+        clientDisconnected(this->pfds[indexClient].fd);
     else if (this->pfds[indexClient].revents & POLLIN)
     {
         char buffer[1024];
@@ -120,7 +125,7 @@ void Server::requests(int indexClient)
         int r = recv(this->pfds[indexClient].fd, buffer, sizeof(buffer), 0);
         std::string str;
         if (r <= 0)
-            clientDisconnected(indexClient);
+            clientDisconnected(this->pfds[indexClient].fd);
         else
             runCommand(this->pfds[indexClient].fd, joinBuffers(indexClient, buffer));
     }
@@ -159,8 +164,8 @@ void Server::acceptUsers()
             this->users.insert(std::make_pair(client_fd, User(client_fd)));
             this->users[client_fd].setNickName("user" + std::to_string(number++));
             this->users[client_fd].joinChannel(&this->channels["general"]);
-            this->channels["general"].listUsers();
-            // std::cout << Utils::getTime()<< " " << this->channels["general"].getUserByFd(client_fd) << " has joined the channel " << this->channels["general"].getName() << std::endl;
+            // this->channels["general"].listUsers();
+            // std::cout << Utils::getTime()<< " " << this->channels["general"].getUserNickByFd(client_fd) << " has joined the channel " << this->channels["general"].getName() << std::endl;
         }
         else
             for (size_t i = 0; i < this->pfds.size(); i++)
@@ -287,18 +292,29 @@ void Server::authenticate(int clientFd)
 
 void Server::runCommand(int clientFd, std::string command)
 {
+    std::cout << Utils::getTime() << " " << command << std::endl;
     if (!command.empty())
     {
         std::stringstream ss(command);
         std::string cmdName, cmdParam;
         ss >> cmdName;
-        ss >> cmdParam;
+        std::getline(ss, cmdParam);
+        if (cmdName.empty())
+            return;
         if (Utils::stolower(cmdName) == "pass")
             cmdPass(clientFd, cmdParam);
         else if (Utils::stolower(cmdName) == "nick")
             cmdNick(clientFd, cmdParam);
         else if (Utils::stolower(cmdName) == "user")
             cmdUser(clientFd, cmdParam);
+        else if (Utils::stolower(cmdName) == "quit")
+            clientDisconnected(clientFd);
+        else
+        {
+            std::stringstream err;
+            err << ":" << inet_ntoa(this->serverAddr.sin_addr) << " " << 421 << " " << cmdName << " " << this->errRep.find(421)->second << "\r\n";
+            send(clientFd, err.str().c_str(), err.str().size(), 0);
+        }
     }
     
 }
