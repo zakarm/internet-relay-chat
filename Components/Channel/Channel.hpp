@@ -31,7 +31,7 @@ class Channel{
         std::string getTopic() const;
         void setTopic(std::string topic);
 
-        std::string getUserByFd(int fd) const;
+        std::string getUserNickByFd(int fd) const;
 
         std::map<int, User*> getUsers() const;
         std::vector<std::string> getBanList() const;
