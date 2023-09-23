@@ -81,14 +81,17 @@ void Server::listenServer()
 
 void Server::clientDisconnected(int indexClient)
 {
+
     close(this->pfds[indexClient].fd);
-    this->pfds.erase(this->pfds.begin() + indexClient);
+    std::cout << Utils::getTime() << this->users.at(this->pfds[indexClient].fd).getNickName() << "has left the server." << std::endl;
 
     if (this->buffring.find(this->pfds[indexClient].fd) != this->buffring.end()) 
         this->buffring.erase(this->buffring.find(this->pfds[indexClient].fd));
     if (this->users.find(this->pfds[indexClient].fd) != this->users.end())
         this->users.erase(this->users.find(this->pfds[indexClient].fd));
-    std::cout << Utils::getTime() << " " << "has left the server." << std::endl;
+    
+    this->pfds.erase(this->pfds.begin() + indexClient);
+    this->channels["general"].listUsers();
 }
 
 
@@ -144,6 +147,7 @@ void Server::acceptUsers()
             continue;
         if (this->pfds[0].revents & POLLIN)
         {
+            static int number = 0;
             struct sockaddr_in clientAddr;
             unsigned int csocketLen = sizeof(clientAddr);
             int client_fd = accept(this->serverSocket, (sockaddr *)&clientAddr, (socklen_t *)&csocketLen);
@@ -152,7 +156,11 @@ void Server::acceptUsers()
             if (client_fd == -1)
                 customException("Error : accept failed");
             this->pfds.push_back((struct pollfd){.fd = client_fd, .events = POLLIN});
-            this->users.insert(std::make_pair(client_fd, User(client_fd)));  
+            this->users.insert(std::make_pair(client_fd, User(client_fd)));
+            this->users[client_fd].setNickName("user" + std::to_string(number++));
+            this->users[client_fd].joinChannel(&this->channels["general"]);
+            this->channels["general"].listUsers();
+            // std::cout << Utils::getTime()<< " " << this->channels["general"].getUserByFd(client_fd) << " has joined the channel " << this->channels["general"].getName() << std::endl;
         }
         else
             for (size_t i = 0; i < this->pfds.size(); i++)
@@ -167,6 +175,7 @@ void Server::runServer()
     bindServer();
     listenServer();
     this->pfds.push_back((struct pollfd){.fd = this->serverSocket, .events = POLLIN});
+    this->channels.insert(std::make_pair("general", Channel("general")));
     acceptUsers();
 }
 
@@ -293,3 +302,4 @@ void Server::runCommand(int clientFd, std::string command)
     }
     
 }
+

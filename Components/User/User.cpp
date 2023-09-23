@@ -3,6 +3,20 @@
 /**************************************************************/
 /*                        Constructors                        */
 /**************************************************************/
+
+User::User()
+{
+    this->clientFd = -1;
+    this->nickName = "";
+    this->userName = "";
+    this->hostName = "";
+    this->serverName = "";
+    this->realName = "";
+    this->isConnected = false;
+    this->setPass = false;
+    this->afk = false;
+}
+
 User::User(int clientFd) : clientFd(clientFd)
 {
     this->nickName = "";
@@ -52,12 +66,6 @@ bool User::getSetPass() const{ return this->setPass; }
 void User::setSetPass(bool setPass){ this->setPass = setPass; }
 bool User::getAfk() const{return this->afk; }
 void User::setAfk(bool afk){ this->afk = afk; }
-
-
-/**************************************************************/
-/*                         Functions                          */
-/**************************************************************/
-
 std::string User::getInfo() const
 { 
     return this->nickName + " " + \
@@ -65,31 +73,40 @@ std::string User::getInfo() const
         + this->serverName + " " + this->realName;
 }
 
-// void User::joinChannel(Channel* channel)
-// {
-//     if(this->isInChannel(channel->getName()))
-//         return;
-//     this->channels.insert(std::make_pair(channel->getName(), channel));
-//     channel->addUser(this);
-//     (void) channel;
-// }
 
-// void User::leaveChannel(Channel* channel)
-// {
-//     if (!this->isInChannel(channel->getName()))
-//         return;
-//     this->channels.erase(channel->getName());
-//     channel->removeUser(this->clientFd);
-// }
+/**************************************************************/
+/*                         Functions                          */
+/**************************************************************/
 
-// bool User::isInChannel(std::string channelName)
-// {
-//     (void) channelName;
-//     return this->channels.find(channelName) != this->channels.end();
-//     return false;
-// }
+
+void User::joinChannel(Channel* channel)
+{
+    if(this->isInChannel(channel->getName()))
+        return; // send already in channel.
+    this->channels.insert(std::make_pair(channel->getName(), channel));
+    channel->addUser(this);
+}
+
+void User::leaveChannel(Channel* channel)
+{
+    if(!this->isInChannel(channel->getName()))
+        return; // send not in channel.
+    this->channels.erase(channel->getName());
+    channel->removeUser(this->clientFd);
+}
+
+bool User::isInChannel(std::string channelName)
+{
+    return this->channels.find(channelName) != this->channels.end();
+    return false;
+}
 
 User::~User()
 {
-    
+    std::map<std::string, Channel*>::iterator it = this->channels.begin();
+    while (it != this->channels.end())
+    {
+        it->second->removeUser(this->clientFd);
+        it++;
+    }
 }

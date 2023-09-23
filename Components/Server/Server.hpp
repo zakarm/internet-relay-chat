@@ -17,7 +17,8 @@ class Server{
         std::queue<std::pair<int, std::string> > responses;
         std::map<int, std::string> buffring;
         std::map<int, User> users;
-        std::vector<Channel> channels;
+        // std::vector<Channel> channels;
+        std::map<std::string, Channel> channels;
         std::map<int, std::string> errRep;
 
     public :
@@ -53,6 +54,7 @@ class Server{
         void cmdUser(int clientFd, std::string data);
         void authenticate(int clientFd);
         void runCommand(int clientFd, std::string command);
+
 };
 
 #endif
