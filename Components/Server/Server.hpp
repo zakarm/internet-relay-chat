@@ -51,7 +51,7 @@ class Server{
         void cmdPass(int clientFd, std::string data);
         void cmdNick(int clientFd, std::string data);
         void cmdUser(int clientFd, std::string data);
-        void authenticate(int clientFd, std::string data);
+        void authenticate(int clientFd);
         void runCommand(int clientFd, std::string command);
 };
 
