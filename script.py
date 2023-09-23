@@ -2,11 +2,11 @@ import subprocess
 import time
 
 server = "localhost"
-port = 6661
+port = 5000
 clients  = []
 for i in range(1000):
     clients.append("client"+str(i))
 
 for nickname in clients:
-    cmd = f'echo "Hello from {nickname}!" | nc {server} {port}'
+    cmd = f'nc {server} {port}'
     subprocess.Popen(cmd, shell=True)

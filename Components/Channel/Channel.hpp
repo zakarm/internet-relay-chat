@@ -10,14 +10,16 @@ class Channel{
         std::string name;
         std::string key;
         std::string topic;
-        std::map<int, User> users;
-        std::map<int, User> operators;
+        std::map<int, User*> users;
+        std::map<int, User*> operators;
         std::vector<std::string> banList;
         int limit;
         int mode;
 
     public :
-        Channel(std::string name, User user);
+        Channel();
+        Channel(std::string name, User *user);
+        Channel(std::string name);
         Channel(const Channel &channel);
         ~Channel();
         
@@ -29,7 +31,9 @@ class Channel{
         std::string getTopic() const;
         void setTopic(std::string topic);
 
-        std::map<int, User> getUsers() const;
+        std::string getUserByFd(int fd) const;
+
+        std::map<int, User*> getUsers() const;
         std::vector<std::string> getBanList() const;
         int getLimit() const;
         
@@ -37,9 +41,21 @@ class Channel{
         void setMode(int mode);
 
 
+
         void unsetMode(int mode);
-        void addUser(User user);
+        void addUser(User *user);
+        void addOperator(User *user);
         void removeUser(int clientFd);
+        enum MODES{
+            NO_MODE = 0,
+            INVITE_ONLY = 1,
+            TOPIC_PROTECTED = 2,
+            SECRET = 4,
+            MODERATED = 8,
+            LIMIT = 16,
+            KEY = 32,
+        };
+        void listUsers();
 
 };
 #endif //CHANNEL_HPP

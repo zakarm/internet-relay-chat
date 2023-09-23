@@ -15,11 +15,13 @@ class User
         std::string hostName;
         std::string serverName;
         std::string realName;
+        std::map<std::string, Channel*> channels;
         bool isConnected;
         bool setPass;
         bool afk;
         
     public :
+        User();
         User(int clientFd);
         User(const User &user);
         ~User();
@@ -42,6 +44,8 @@ class User
         void setSetPass(bool setPass);
         bool getAfk() const;
         void setAfk(bool afk);
+
+
 
         std::string getInfo() const;
         void sendMessage(std::string message);
