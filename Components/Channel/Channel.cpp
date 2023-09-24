@@ -69,8 +69,10 @@ void Channel::addOperator(User *user)
 
 void Channel::removeUser(int clientFd)
 {
-    this->users.erase(clientFd);
-    this->operators.erase(clientFd);
+    if (this->users.find(clientFd) != this->users.end())
+        this->users.erase(clientFd);
+    if (this->operators.find(clientFd) != this->operators.end())
+        this->operators.erase(clientFd);
     if (!this->operators.size() && this->users.size())
     {
         this->operators.insert(std::make_pair(this->users.begin()->first, this->users.begin()->second));

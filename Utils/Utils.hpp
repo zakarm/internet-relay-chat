@@ -1,20 +1,9 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Utils.hpp                                          :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: zmrabet <marvin@42.fr>                     +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/09/14 23:37:43 by zmrabet           #+#    #+#             */
-/*   Updated: 2023/09/14 23:47:29 by zmrabet          ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #ifndef UTILS_HPP
 #define UTILS_HPP
 #include <time.h>
 #include <iostream>
 #include <sstream>
+#include <map>
 
 #ifndef RED
 #define RED "\033[31m"
@@ -30,5 +19,8 @@ class Utils {
     public :
         static std::string getTime();
         static std::string stolower(std::string data);
+        static void loadErrorsReplies(std::map<int, std::string> &errRep, std::string netName, 
+            std::string servName, std::string hostName);
+        static std::string getDate();
 };
 #endif //UTILS_HPP
