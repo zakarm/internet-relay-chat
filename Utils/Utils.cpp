@@ -108,7 +108,7 @@ void Utils::loadErrorsReplies(std::map<int, std::string> &errRep, std::string ne
     errRep.insert(std::make_pair(443, " is already on channel"));
     errRep.insert(std::make_pair(451, " You have not registered"));
     errRep.insert(std::make_pair(461, " Not enough parameters."));
-    errRep.insert(std::make_pair(462, " You may not reregister."));
+    errRep.insert(std::make_pair(462, " You're already registered."));
     errRep.insert(std::make_pair(464, " Password incorrect"));
     errRep.insert(std::make_pair(465, " You are banned from this server."));
     errRep.insert(std::make_pair(471, " Cannot join channel (+l)"));
