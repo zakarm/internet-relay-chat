@@ -198,11 +198,6 @@ void Server::runServer()
 
 bool Server::checkPass(std::string password)
 {
-    for (size_t i = 0; i < password.size(); i++)
-        std::cout << (int)password[i] << std::endl;
-    std::cout << "---------------" << std::endl;
-    for (size_t i = 0; i < this->password.size(); i++)
-        std::cout << (int)this->password[i] << std::endl;
     if (password != this->password) 
         return false;
     return true;
@@ -263,7 +258,6 @@ void Server::cmdUser(int clientFd, std::string data)
 
 void Server::cmdTopic(int clientFd, std::string data)
 {
-    std::cout << this->users.find(clientFd)->second.getIsConnected() << std::endl;
     std::stringstream err;
     if (data.empty())
     {
