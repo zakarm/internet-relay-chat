@@ -14,7 +14,7 @@ Server::Server(int port, std::string password) : port(port), password(password)
     this->serverAddr.sin_port = htons(port);
     this->serverAddr.sin_addr.s_addr = INADDR_ANY;
     this->socketLen = sizeof(this->serverAddr);
-    loadErrorsReplies();
+    Utils::loadErrorsReplies(this->errRep, "IRC_SERVER", "ircserv", "");
 }
 
 Server::Server(const Server &sv)
@@ -83,7 +83,7 @@ void Server::clientDisconnected(int clientFd)
 {
 
     close(clientFd);
-    std::cout << Utils::getTime() << this->users.at(clientFd).getNickName() << " has left the server." << std::endl;
+    std::cout << Utils::getTime() << " " << this->users.at(clientFd).getNickName() << " has left the server." << std::endl;
     if (this->buffring.find(clientFd) != this->buffring.end()) 
         this->buffring.erase(this->buffring.find(clientFd));
     if (this->users.find(clientFd) != this->users.end())
@@ -102,6 +102,7 @@ void Server::clientDisconnected(int clientFd)
 
 std::string Server::joinBuffers(int indexClient, char *buffer)
 {
+    
     if (buffer[strlen(buffer) - 1] != '\n')
         this->buffring[this->pfds[indexClient].fd] += buffer;
     else
@@ -109,6 +110,10 @@ std::string Server::joinBuffers(int indexClient, char *buffer)
         this->buffring[this->pfds[indexClient].fd] += buffer;
         std::string command = this->buffring[this->pfds[indexClient].fd];
         this->buffring[this->pfds[indexClient].fd].clear();
+        if (command.find('\n') != std::string::npos)
+            command = command.substr(0, command.find('\n'));
+        if (command.find('\r') != std::string::npos)
+            command = command.substr(0, command.find('\r'));
         return (command);
     }
     return ("");
@@ -141,7 +146,29 @@ void Server::requests(int indexClient)
 
 }
 
-void Server::acceptUsers()
+void Server::acceptAndDecline()
+{
+    static int number = 0;
+    struct sockaddr_in clientAddr;
+    unsigned int csocketLen = sizeof(clientAddr);
+    int client_fd = accept(this->serverSocket, (sockaddr *)&clientAddr, (socklen_t *)&csocketLen);
+    if (client_fd == -1)
+    {
+        std::cerr << RED << "Error : accept failed (max_fd reached)" << DEFAULT << std::endl;
+        return ;
+    }
+    std::cout << Utils::getTime() << " " << inet_ntoa(clientAddr.sin_addr)
+                << " has joined the server." << std::endl;
+    this->pfds.push_back((struct pollfd){.fd = client_fd, .events = POLLIN});
+    this->users.insert(std::make_pair(client_fd, User(client_fd)));
+    this->users[client_fd].setNickName("user" + std::to_string(number++));
+    this->users[client_fd].joinChannel(&this->channels["general"]);
+    // this->channels["general"].listUsers();
+    // std::cout << Utils::getTime()<< " " << this->channels["general"].getUserNickByFd(client_fd) << " has joined the channel " << this->channels["general"].getName() << std::endl;
+
+}
+
+void Server::multipleClients()
 {
     for (;;)
     {
@@ -151,22 +178,7 @@ void Server::acceptUsers()
         if (numfds == 0)
             continue;
         if (this->pfds[0].revents & POLLIN)
-        {
-            static int number = 0;
-            struct sockaddr_in clientAddr;
-            unsigned int csocketLen = sizeof(clientAddr);
-            int client_fd = accept(this->serverSocket, (sockaddr *)&clientAddr, (socklen_t *)&csocketLen);
-            std::cout << Utils::getTime() << " " << inet_ntoa(clientAddr.sin_addr)
-                      << " has joined the server." << std::endl;
-            if (client_fd == -1)
-                customException("Error : accept failed");
-            this->pfds.push_back((struct pollfd){.fd = client_fd, .events = POLLIN});
-            this->users.insert(std::make_pair(client_fd, User(client_fd)));
-            this->users[client_fd].setNickName("user" + std::to_string(number++));
-            this->users[client_fd].joinChannel(&this->channels["general"]);
-            // this->channels["general"].listUsers();
-            // std::cout << Utils::getTime()<< " " << this->channels["general"].getUserNickByFd(client_fd) << " has joined the channel " << this->channels["general"].getName() << std::endl;
-        }
+            acceptAndDecline();
         else
             for (size_t i = 0; i < this->pfds.size(); i++)
                 requests(i);
@@ -181,11 +193,16 @@ void Server::runServer()
     listenServer();
     this->pfds.push_back((struct pollfd){.fd = this->serverSocket, .events = POLLIN});
     this->channels.insert(std::make_pair("general", Channel("general")));
-    acceptUsers();
+    multipleClients();
 }
 
 bool Server::checkPass(std::string password)
 {
+    for (size_t i = 0; i < password.size(); i++)
+        std::cout << (int)password[i] << std::endl;
+    std::cout << "---------------" << std::endl;
+    for (size_t i = 0; i < this->password.size(); i++)
+        std::cout << (int)this->password[i] << std::endl;
     if (password != this->password) 
         return false;
     return true;
@@ -202,68 +219,29 @@ bool Server::checkDuplicateNick(std::string nickName)
     return true;
 }
 
-void Server::loadErrorsReplies()
-{
-    this->errRep.insert(std::make_pair(401, " No such nick/channel"));
-    this->errRep.insert(std::make_pair(402, " No such server"));
-    this->errRep.insert(std::make_pair(403, " No such channel"));
-    this->errRep.insert(std::make_pair(404, " Cannot send to channel"));
-    this->errRep.insert(std::make_pair(405, " You have joined too many channels"));
-    this->errRep.insert(std::make_pair(406, " There was no such nickname"));
-    this->errRep.insert(std::make_pair(409, " No origin specified"));
-    this->errRep.insert(std::make_pair(411, " No recipient given"));
-    this->errRep.insert(std::make_pair(412, " No text to send"));
-    this->errRep.insert(std::make_pair(417, " Input line was too long"));
-    this->errRep.insert(std::make_pair(421, " Unknown command"));
-    this->errRep.insert(std::make_pair(422, " MOTD File is missing"));
-    this->errRep.insert(std::make_pair(431, " No nickname given"));
-    this->errRep.insert(std::make_pair(432, " Erroneus nickname"));
-    this->errRep.insert(std::make_pair(433, " Nickname is already in use"));
-    this->errRep.insert(std::make_pair(436, " Nickname collision KILL from"));
-    this->errRep.insert(std::make_pair(441, " They aren't on that channel"));
-    this->errRep.insert(std::make_pair(442, " You're not on that channel"));
-    this->errRep.insert(std::make_pair(443, " is already on channel"));
-    this->errRep.insert(std::make_pair(451, " You have not registered"));
-    this->errRep.insert(std::make_pair(461, " Not enough parameters."));
-    this->errRep.insert(std::make_pair(462, " You may not reregister."));
-    this->errRep.insert(std::make_pair(464, " Password incorrect"));
-    this->errRep.insert(std::make_pair(465, " You are banned from this server."));
-    this->errRep.insert(std::make_pair(471, " Cannot join channel (+l)"));
-    this->errRep.insert(std::make_pair(472, " is unknown mode char to me"));
-    this->errRep.insert(std::make_pair(473, " Cannot join channel (+i)"));
-    this->errRep.insert(std::make_pair(474, " Cannot join channel (+b)"));
-    this->errRep.insert(std::make_pair(475, " Cannot join channel (+k)"));
-    this->errRep.insert(std::make_pair(476, " Bad Channel Mask"));
-    this->errRep.insert(std::make_pair(481, " Permission Denied- You're not an IRC operator"));
-    this->errRep.insert(std::make_pair(482, " You're not channel operator"));
-    this->errRep.insert(std::make_pair(483, " You cant kill a server!"));
-    this->errRep.insert(std::make_pair(491, " No O-lines for your host"));
-    this->errRep.insert(std::make_pair(501, " Unknown MODE flag"));
-    this->errRep.insert(std::make_pair(502, " Cant change mode for other users"));
-    this->errRep.insert(std::make_pair(524, " No help available on this topic"));
-    this->errRep.insert(std::make_pair(525, " Key is not well-formed"));
-} 
-
 void Server::cmdPass(int clientFd, std::string data)
 {
-    
+    std::stringstream err;
     if (data.empty())
     {
-        std::stringstream err;
-        err << ":" << inet_ntoa(this->serverAddr.sin_addr) << " " << 461 << " PASS " << this->errRep.find(461)->second << "\r\n";
+        err << ":irc.leet.com 461 PASS " << this->errRep.find(461)->second << "\r\n";
         send(clientFd, err.str().c_str(), err.str().size(), 0);
+        err.clear();
+        return ;
     }
     else if (this->users.find(clientFd)->second.getIsConnected())
     {
-        std::stringstream err;
-        err << ":" << inet_ntoa(this->serverAddr.sin_addr) << " " << 462 << " PASS " << this->errRep.find(462)->second << "\r\n";
+        err << ":irc.leet.com 462 PASS " << this->errRep.find(462)->second << "\r\n";
         send(clientFd, err.str().c_str(), err.str().size(), 0);
+        err.clear();
+        return ;
     }
     else if (!checkPass(data))
     {
-        std::stringstream err;
-        err << ":" << inet_ntoa(this->serverAddr.sin_addr) << " " << 464 << " PASS " << this->errRep.find(464)->second << "\r\n";
+        err << ":irc.leet.com 464 PASS " << this->errRep.find(464)->second << "\r\n";
         send(clientFd, err.str().c_str(), err.str().size(), 0);
+        err.clear();
+        return ;
     }
     this->users.find(clientFd)->second.setSetPass(true);
     authenticate(clientFd);
@@ -283,11 +261,62 @@ void Server::cmdUser(int clientFd, std::string data)
     (void)data;
 }
 
+void Server::cmdTopic(int clientFd, std::string data)
+{
+    std::cout << this->users.find(clientFd)->second.getIsConnected() << std::endl;
+    std::stringstream err;
+    if (data.empty())
+    {
+        err << ":irc.leet.com 461 TOPIC " << this->errRep.find(461)->second << "\r\n";
+        send(clientFd, err.str().c_str(), err.str().size(), 0);
+        err.clear();
+        return ;
+    }
+    else if (!this->users.find(clientFd)->second.getIsConnected())
+    {
+        
+        err << ":irc.leet.com 451 TOPIC " << this->errRep.find(451)->second << "\r\n";
+        send(clientFd, err.str().c_str(), err.str().size(), 0);
+        err.clear();
+        return ;
+    }
+}
+
 void Server::authenticate(int clientFd)
 {
+    /*
+    !
+    !           HADO AKANTESTER BHALA DEJA  MDKHL USER !
+    !
+    */
+    this->users.find(clientFd)->second.setNickName("Zakariae");
+    this->users.find(clientFd)->second.setUserName("Apollo");
     User u = this->users.find(clientFd)->second;
-    if (!u.getNickName().empty() && u.getSetPass())
+    if (!u.getUserName().empty() && !u.getNickName().empty() && u.getSetPass())
+    {
         this->users.find(clientFd)->second.setIsConected(true);
+        std::stringstream rep;
+        rep << ":irc.leet.com 001 " << u.getNickName() << " " << 
+            this->errRep.find(1)->second << " " << u.getNickName() << std::endl;
+        send(clientFd, rep.str().c_str(), rep.str().size(), 0);
+        rep.str("");
+        rep << ":irc.leet.com 002 " << u.getNickName() << " " << 
+            this->errRep.find(2)->second << " v1" << std::endl;;
+        send(clientFd, rep.str().c_str(), rep.str().size(), 0);
+        rep.str("");
+        rep << ":irc.leet.com 003 " << u.getNickName() << " " << 
+            this->errRep.find(3)->second << " " << Utils::getDate();
+        send(clientFd, rep.str().c_str(), rep.str().size(), 0);
+        rep.str("");
+        rep << ":irc.leet.com 004 " << u.getNickName() << " " << 
+            this->errRep.find(4)->second  << std::endl;
+        send(clientFd, rep.str().c_str(), rep.str().size(), 0);
+        rep.str("");
+        rep << ":irc.leet.com 005 " << u.getNickName() << " " << 
+            this->errRep.find(5)->second << std::endl;
+        send(clientFd, rep.str().c_str(), rep.str().size(), 0);
+        rep.str("");
+    }
 }
 
 void Server::runCommand(int clientFd, std::string command)
@@ -298,6 +327,7 @@ void Server::runCommand(int clientFd, std::string command)
         std::stringstream ss(command);
         std::string cmdName, cmdParam;
         ss >> cmdName;
+        ss >> std::ws;
         std::getline(ss, cmdParam);
         if (cmdName.empty())
             return;
@@ -309,6 +339,8 @@ void Server::runCommand(int clientFd, std::string command)
             cmdUser(clientFd, cmdParam);
         else if (Utils::stolower(cmdName) == "quit")
             clientDisconnected(clientFd);
+        else if (Utils::stolower(cmdName) == "topic")
+            cmdTopic(clientFd, cmdParam);
         else
         {
             std::stringstream err;
@@ -319,3 +351,10 @@ void Server::runCommand(int clientFd, std::string command)
     
 }
 
+/**************************************************************/
+/*                         Destructor                         */
+/**************************************************************/
+Server::~Server()
+{
+
+}

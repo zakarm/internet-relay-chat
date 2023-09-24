@@ -17,13 +17,13 @@ class Server{
         std::queue<std::pair<int, std::string> > responses;
         std::map<int, std::string> buffring;
         std::map<int, User> users;
-        // std::vector<Channel> channels;
         std::map<std::string, Channel> channels;
         std::map<int, std::string> errRep;
 
     public :
         Server(int port, std::string password);
         Server(const Server& sv);
+        ~Server();
         int getServerSocket() const;
         void setServerSocket(int serverSocket);
         struct sockaddr_in getServerAddr() const;
@@ -40,20 +40,22 @@ class Server{
         void socketOptions();
         void bindServer();
         void listenServer();
-        void acceptUsers();
+        void acceptAndDecline();
+        void multipleClients();
         void clientDisconnected(int clientFd);
         std::string joinBuffers(int indexClient, char *buffer);
         void requests(int indexClient);
         void runServer();
-        
+
         bool checkPass(std::string password);
         bool checkDuplicateNick(std::string nickName);
-        void loadErrorsReplies();
         void cmdPass(int clientFd, std::string data);
         void cmdNick(int clientFd, std::string data);
         void cmdUser(int clientFd, std::string data);
+        void cmdTopic(int clientFd, std::string data);
         void authenticate(int clientFd);
         void runCommand(int clientFd, std::string command);
+        
 
 };
 
