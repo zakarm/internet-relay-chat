@@ -32,8 +32,8 @@ class Channel{
         void setTopic(std::string topic);
 
         std::string getUserNickByFd(int fd) const;
-        std::map<int, User*> getUsers() const;
-        std::map<int, User*> getOperators() const;
+        const std::map<int, User*>& getUsers() const;
+        const std::map<int, User*>& getOperators() const;
         std::vector<std::string> getBanList() const;
         int getLimit() const;
         
