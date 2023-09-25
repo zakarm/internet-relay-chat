@@ -147,7 +147,7 @@ void Server::requests(int indexClient)
 
 void Server::acceptAndDecline()
 {
-    // static int number = 0;
+    static int number = 0;
     struct sockaddr_in clientAddr;
     unsigned int csocketLen = sizeof(clientAddr);
     int client_fd = accept(this->serverSocket, (sockaddr *)&clientAddr, (socklen_t *)&csocketLen);
@@ -160,8 +160,10 @@ void Server::acceptAndDecline()
                 << " has joined the server." << std::endl;
     this->pfds.push_back((struct pollfd){.fd = client_fd, .events = POLLIN});
     this->users.insert(std::make_pair(client_fd, User(client_fd)));
-    // this->users[client_fd].setNickName("user" + std::to_string(number++));
-    // this->users[client_fd].joinChannel(&this->channels["general"]);
+    this->users[client_fd].setNickName("nick" + std::to_string(number++));
+    this->users[client_fd].setUserName("user" + std::to_string(number++));
+    this->users[client_fd].joinChannel(&this->channels["general"]);
+    this->channels["general"].setMode(2);
     // this->channels["general"].listUsers();
     // std::cout << Utils::getTime()<< " " << this->channels["general"].getUserNickByFd(client_fd) << " has joined the channel " << this->channels["general"].getName() << std::endl;
 
@@ -255,22 +257,14 @@ void Server::cmdTopic(int clientFd, std::string data)
         std::stringstream ss(data);
         std::string channelName, newTopic;
         ss >> channelName;
-        ss >> newTopic;
-        Channel c;
-        c.setName("DATA");
-        this->channels.insert(std::make_pair("DATA", c));
-        this->users.find(clientFd)->second.joinChannel(&(this->channels["DATA"]));
-        // this->channels.find(channelName)->second.setTopic("Rijal");
+        std::getline(ss, newTopic);
         if (this->channels.find(channelName) == this->channels.end())
             sendErrRep(403, clientFd, "TOPIC", this->users.find(clientFd)->second.getNickName(), channelName);
         else if (!this->users.find(clientFd)->second.isInChannel(channelName))
             sendErrRep(442, clientFd, "TOPIC", this->users.find(clientFd)->second.getNickName(), channelName);
         else if (this->channels.find(channelName) != this->channels.end() && newTopic.empty())
         {
-            /* Hadi  f new Topic */
-            if (this->channels.find(channelName)->second.getMode() == 2 && this->channels.find(channelName)->second.isOperator(clientFd))
-                sendErrRep(482, clientFd, "TOPIC", this->users.find(clientFd)->second.getNickName(), channelName);
-            else if (this->channels.find(channelName)->second.getTopic().empty())
+            if (this->channels.find(channelName)->second.getTopic().empty())
                 sendErrRep(331, clientFd, "", this->users.find(clientFd)->second.getNickName(), channelName);
             else
             {
@@ -282,28 +276,31 @@ void Server::cmdTopic(int clientFd, std::string data)
         }
         else
         {
+            if (this->channels.find(channelName)->second.getMode() == 2 && !this->channels.find(channelName)->second.isOperator(clientFd))
+            {
+                sendErrRep(482, clientFd, "TOPIC", this->users.find(clientFd)->second.getNickName(), channelName);
+                return ;
+            }
             if (newTopic[0] == ':' && newTopic.size() == 1)
                 this->channels.find(channelName)->second.setTopic("");
-            if (newTopic[0] == ':')
+            else if (newTopic[0] == ':')
                 this->channels.find(channelName)->second.setTopic(newTopic.substr(1, newTopic.size()));
             else
                 this->channels.find(channelName)->second.setTopic(newTopic);
-            sendErrRep(332, clientFd, "", this->users.find(clientFd)->second.getNickName(),\
+            std::string clientNick(this->users[clientFd].getNickName());
+            std::map<int, User *>::const_iterator it;
+            for (it = this->channels[channelName].getUsers().begin(); it != this->channels[channelName].getUsers().end(); it++)
+                sendErrRep(332, it->second->getClientFd(), "", clientNick,\
                         channelName + " :" + this->channels.find(channelName)->second.getTopic());
-            // for (size_t i = 0; i < this->channels[channelName].getUsers().size(); i++)
-            //     sendErrRep(332, this->channels[channelName].getUsers()[i]->getClientFd(), "", this->users.find(clientFd)->second.getNickName(),\
-            //             channelName + " :" + this->channels.find(channelName)->second.getTopic());
-            // for (size_t i = 0; i <this->channels[channelName].getOperators().size(); i++)
-            //     sendErrRep(332, this->channels[channelName].getOperators()[i]->getClientFd(), "", this->users.find(clientFd)->second.getNickName(),\
-            //             channelName + " :" + this->channels.find(channelName)->second.getTopic());
+            for (it = this->channels[channelName].getOperators().begin(); it != this->channels[channelName].getOperators().end(); it++)
+                sendErrRep(332, it->second->getClientFd(), "", clientNick,\
+                        channelName + " :" + this->channels.find(channelName)->second.getTopic());
         }
     }
 }
 
 void Server::authenticate(int clientFd)
 {
-    this->users.find(clientFd)->second.setNickName("Zakariae");
-    this->users.find(clientFd)->second.setUserName("Apollo");
     User u = this->users.find(clientFd)->second;
     if (!u.getUserName().empty() && !u.getNickName().empty() && u.getSetPass())
     {
