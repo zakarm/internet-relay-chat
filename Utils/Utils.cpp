@@ -28,7 +28,10 @@ std::string Utils::getDate()
 {
     std::time_t now = std::time(NULL);
     std::tm *ptm = std::localtime(&now);
-    return std::asctime(ptm);
+    std::string date(std::asctime(ptm));
+    if (date.find('\n') != std::string::npos)
+        date = date.substr(0, date.find('\n'));
+    return date;
 }
 
 std::string Utils::stolower(std::string data)
@@ -51,42 +54,9 @@ void Utils::loadErrorsReplies(std::map<int, std::string> &errRep, std::string ne
     errRep.insert(std::make_pair(4, ":" + servName + " v1"));
     errRep.insert(std::make_pair(5,":are supported by this server"));
     errRep.insert(std::make_pair(10, hostName));
-    errRep.insert(std::make_pair(212,""));
+    errRep.insert(std::make_pair(331,":No topic is set"));
     errRep.insert(std::make_pair(219,""));
     errRep.insert(std::make_pair(242,""));
-    // errRep.insert(std::make_pair(,""));
-    // errRep.insert(std::make_pair(,""));
-    // errRep.insert(std::make_pair(,""));
-    // errRep.insert(std::make_pair(,""));
-    // errRep.insert(std::make_pair(,""));
-    // errRep.insert(std::make_pair(,""));
-    // errRep.insert(std::make_pair(,""));
-    // errRep.insert(std::make_pair(,""));
-    // errRep.insert(std::make_pair(,""));
-    // errRep.insert(std::make_pair(,""));
-    // errRep.insert(std::make_pair(,""));
-    // errRep.insert(std::make_pair(,""));
-    // errRep.insert(std::make_pair(,""));
-    // errRep.insert(std::make_pair(,""));
-    // errRep.insert(std::make_pair(,""));
-    // errRep.insert(std::make_pair(,""));
-    // errRep.insert(std::make_pair(,""));
-    // errRep.insert(std::make_pair(,""));
-    // errRep.insert(std::make_pair(,""));
-    // errRep.insert(std::make_pair(,""));
-    // errRep.insert(std::make_pair(,""));
-    // errRep.insert(std::make_pair(,""));
-    // errRep.insert(std::make_pair(,""));
-    // errRep.insert(std::make_pair(,""));
-    // errRep.insert(std::make_pair(,""));
-    // errRep.insert(std::make_pair(,""));
-    // errRep.insert(std::make_pair(,""));
-    // errRep.insert(std::make_pair(,""));
-    // errRep.insert(std::make_pair(,""));
-    // errRep.insert(std::make_pair(,""));
-    // errRep.insert(std::make_pair(,""));
-
-    
     errRep.insert(std::make_pair(401, " No such nick/channel"));
     errRep.insert(std::make_pair(402, " No such server"));
     errRep.insert(std::make_pair(403, " No such channel"));
