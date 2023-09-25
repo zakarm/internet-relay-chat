@@ -47,6 +47,7 @@ class Server{
         void requests(int indexClient);
         void runServer();
 
+        void sendErrRep(int code, int clientFd, std::string command, std::string s1, std::string s2);
         bool checkPass(std::string password);
         bool checkDuplicateNick(std::string nickName);
         void cmdPass(int clientFd, std::string data);
