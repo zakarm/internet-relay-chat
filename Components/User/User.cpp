@@ -98,7 +98,6 @@ void User::leaveChannel(Channel* channel)
 bool User::isInChannel(std::string channelName)
 {
     return this->channels.find(channelName) != this->channels.end();
-    return false;
 }
 
 User::~User()

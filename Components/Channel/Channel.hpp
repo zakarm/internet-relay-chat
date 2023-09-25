@@ -33,6 +33,7 @@ class Channel{
 
         std::string getUserNickByFd(int fd) const;
         std::map<int, User*> getUsers() const;
+        std::map<int, User*> getOperators() const;
         std::vector<std::string> getBanList() const;
         int getLimit() const;
         
@@ -40,7 +41,7 @@ class Channel{
         void setMode(int mode);
 
 
-
+        bool isOperator(int clientFd);
         void unsetMode(int mode);
         void addUser(User *user);
         void addOperator(User *user);
