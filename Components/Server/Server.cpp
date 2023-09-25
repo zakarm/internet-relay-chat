@@ -250,21 +250,23 @@ void Server::cmdTopic(int clientFd, std::string data)
         sendErrRep(461, clientFd, "TOPIC", "", "");
     else if (!this->users.find(clientFd)->second.getIsConnected())
         sendErrRep(451, clientFd, "TOPIC", "", "");
-    else 
+    else
     {
         std::stringstream ss(data);
         std::string channelName, newTopic;
         ss >> channelName;
         ss >> newTopic;
+        std::cout << (this->channels.find(channelName) == this->channels.end()) << std::endl;
+        if (this->channels.find(channelName) == this->channels.end())
+            sendErrRep(442, clientFd, "TOPIC", this->users.find(clientFd)->second.getNickName(), this->channels.find(channelName)->second.getName());
         if (this->channels.find(channelName) != this->channels.end() && newTopic.empty())
         {
-            Channel c = this->channels.find(channelName)->second;
-            if (c.getTopic().empty())
-                sendErrRep(331, clientFd, "TOPIC", this->users.find(clientFd)->second.getNickName(), c.getName());
-            // std::stringstream 
-            // send(clientFd, );
+            if (this->channels.find(channelName)->second.getTopic().empty())
+                sendErrRep(331, clientFd, "TOPIC", this->users.find(clientFd)->second.getNickName(), this->channels.find(channelName)->second.getName());
         }
     }
+        
+    
 }
 
 void Server::authenticate(int clientFd)
@@ -281,7 +283,7 @@ void Server::authenticate(int clientFd)
 
 void Server::runCommand(int clientFd, std::string command)
 {
-    std::cout << Utils::getTime() << " " << command << std::endl;
+    // std::cout << Utils::getTime() << " " << command << std::endl;
     if (!command.empty())
     {
         std::stringstream ss(command);
@@ -321,7 +323,8 @@ void Server::sendErrRep(int code, int clientFd, std::string command, std::string
     else if (code == 462) ss << ":irc.leet.com 462 " << command << this->errRep.find(462)->second << "\r\n";
     else if (code == 464) ss << ":irc.leet.com 464 " << command << this->errRep.find(464)->second << "\r\n";
     else if (code == 421) ss << ":irc.leet.com 421 " << command << " " << this->errRep.find(421)->second << "\r\n";
-    else if (code == 331) ss << ":irc.leet.com 421 " << command << s1 << " " << s2 << " " << this->errRep.find(331)->second << "\r\n";
+    else if (code == 331) ss << ":irc.leet.com 331 " << command << " " << s1 << " " << s2 << " " << this->errRep.find(331)->second << "\r\n";
+    else if (code == 442) ss << ":irc.leet.com 442 " << command << " " <<s1 << " " << s2 << " " << this->errRep.find(442)->second << "\r\n";
     send(clientFd, ss.str().c_str(), ss.str().size(), 0);
     ss.clear();
 }
