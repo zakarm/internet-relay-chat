@@ -288,7 +288,7 @@ void Server::cmdTopic(int clientFd, std::string data)
                 this->channels.find(channelName)->second.setTopic(newTopic.substr(1, newTopic.size()));
             else
                 this->channels.find(channelName)->second.setTopic(newTopic);
-            sendErrRep(332, this->channels[channelName].getOperators()[i]->getClientFd(), "", this->users.find(clientFd)->second.getNickName(),\
+            sendErrRep(332, clientFd, "", this->users.find(clientFd)->second.getNickName(),\
                         channelName + " :" + this->channels.find(channelName)->second.getTopic());
             // for (size_t i = 0; i < this->channels[channelName].getUsers().size(); i++)
             //     sendErrRep(332, this->channels[channelName].getUsers()[i]->getClientFd(), "", this->users.find(clientFd)->second.getNickName(),\

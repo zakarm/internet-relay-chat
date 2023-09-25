@@ -42,8 +42,8 @@ std::string Channel::getKey() const { return this->key; }
 void Channel::setKey(std::string key) { this->key = key; }
 std::string Channel::getTopic() const { return this->topic; }
 void Channel::setTopic(std::string topic) { this->topic = topic; }
-std::map<int, User *> Channel::getUsers() const { return this->users; }
-std::map<int, User *> Channel::getOperators() const { return this->operators;}
+const std::map<int, User *>& Channel::getUsers() const { return this->users; }
+const std::map<int, User *>& Channel::getOperators() const { return this->operators;}
 std::string Channel::getUserNickByFd(int fd) const { return this->users.at(fd)->getNickName(); }
 
 /**************************************************************/
