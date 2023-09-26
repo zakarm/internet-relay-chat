@@ -22,7 +22,9 @@ CLIENT     = Components/User/User.cpp \
 
 
 
-SERVER     = Components/Server/Server.cpp
+SERVER     = Components/Server/Server.cpp \
+			 Components/Server/Commands.cpp \
+			 Components/Server/Connection.cpp
 UTILS      = Utils/Utils.cpp
 MAIN	   = main.cpp
 BIN        = obj/

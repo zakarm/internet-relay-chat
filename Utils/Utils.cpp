@@ -55,7 +55,6 @@ void Utils::loadErrorsReplies(std::map<int, std::string> &errRep, std::string ne
     errRep.insert(std::make_pair(5,":are supported by this server"));
     errRep.insert(std::make_pair(10, hostName));
     errRep.insert(std::make_pair(331,":No topic is set"));
-    errRep.insert(std::make_pair(219,""));
     errRep.insert(std::make_pair(242,""));
     errRep.insert(std::make_pair(401, " No such nick/channel"));
     errRep.insert(std::make_pair(402, " No such server"));
