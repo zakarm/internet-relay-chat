@@ -38,33 +38,34 @@ void   port_check(const char *port)
     long conv = std::strtol(port, &endp, 10);
     if (*endp != '\0' || conv <= 0 || conv > 65535)
         throw(std::runtime_error("Error: port range not valid"));
+    //check correct port range
 }
 
 void Server::cmdNick(int clientFd, std::string data)
 {
-    if(data.empty() || data == ":")
+    std::stringstream ss(data);
+    std::string nickName;
+    ss >> nickName;
+    if(nickName.empty() || nickName == ":")
         sendErrRep(431, clientFd, "NICK", "", "");
-    if (data[data.length() - 1] == '_')
-        data.pop_back();
-    else if (!validNick(data))
+    else if (!validNick(nickName))
         sendErrRep(432, clientFd, "NICK", "", "");
-    else if (!checkDuplicateNick(data))
+    else if (!checkDuplicateNick(nickName))
         sendErrRep(433, clientFd, "NICK", "", "");
     else 
     {
-        if(this->users.find(clientFd)->second.getNickName().empty())
+        if (this->users.find(clientFd)->second.getNickName().empty())
         {
-            std::string test ="Requesting the new nick \"" + data + "\"";
+            std::string test = "Requesting the new nick \"" + nickName + "\r\n";
             send(clientFd, test.c_str(), test.size(), 0);
         }
         else
         {
             std::string oldNick = this->users.find(clientFd)->second.getNickName();
-            std::string msg = ":" + oldNick + " NICK " + data + " ; " + oldNick + " changed his nickname to " + data + "\r\n";
+            std::string msg = ":" + oldNick + " NICK " + nickName + " ; " + oldNick + " changed his nickname to " + nickName + "\r\n";
             send(clientFd, msg.c_str(), msg.size(), 0);
         }
-        this->users.find(clientFd)->second.setNickName(data);
-        authenticate(clientFd);
+        this->users.find(clientFd)->second.setNickName(nickName);
     }
 }
 
@@ -74,7 +75,7 @@ bool Server::validNick(const std::string& data)
         if(!isalpha(data[0]))
         return false;
         for (it = data.begin(); it != data.end(); ++it)
-            if (!isalnum(*it) && *it != '-' && *it != '[' && *it != ']' && *it != '\\' )
+            if (!isalnum(*it) && *it != '_' && *it != '[' && *it != ']' && *it != '\\' )
                 return false;
     return true;
 }
