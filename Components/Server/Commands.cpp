@@ -30,16 +30,57 @@ void Server::cmdPass(int clientFd, std::string data)
     }
 }
 
+void   port_check(const char *port)
+{
+    if (!port || *port == '\0')
+        throw(std::runtime_error("Error: port range not valid"));
+    char *endp;
+    long conv = std::strtol(port, &endp, 10);
+    if (*endp != '\0' || conv <= 0 || conv > 65535)
+        throw(std::runtime_error("Error: port range not valid"));
+}
+
 void Server::cmdNick(int clientFd, std::string data)
 {
-    // std::cout << "fd:" << clientFd << " " << data << std::endl;
-    (void)clientFd;
-    (void)data;
+    if(data.empty() || data == ":")
+        sendErrRep(431, clientFd, "NICK", "", "");
+    if (data[data.length() - 1] == '_')
+        data.pop_back();
+    else if (!validNick(data))
+        sendErrRep(432, clientFd, "NICK", "", "");
+    else if (!checkDuplicateNick(data))
+        sendErrRep(433, clientFd, "NICK", "", "");
+    else 
+    {
+        if(this->users.find(clientFd)->second.getNickName().empty())
+        {
+            std::string test ="Requesting the new nick \"" + data + "\"";
+            send(clientFd, test.c_str(), test.size(), 0);
+        }
+        else
+        {
+            std::string oldNick = this->users.find(clientFd)->second.getNickName();
+            std::string msg = ":" + oldNick + " NICK " + data + " ; " + oldNick + " changed his nickname to " + data + "\r\n";
+            send(clientFd, msg.c_str(), msg.size(), 0);
+        }
+        this->users.find(clientFd)->second.setNickName(data);
+        authenticate(clientFd);
+    }
+}
+
+bool Server::validNick(const std::string& data)
+{
+    std::string::const_iterator it;
+        if(!isalpha(data[0]))
+        return false;
+        for (it = data.begin(); it != data.end(); ++it)
+            if (!isalnum(*it) && *it != '-' && *it != '[' && *it != ']' && *it != '\\' )
+                return false;
+    return true;
 }
 
 void Server::cmdUser(int clientFd, std::string data)
 {
-    // std::cout << "fd:" << clientFd << " " << data << std::endl;
     (void)clientFd;
     (void)data;
 }
@@ -99,7 +140,6 @@ void Server::cmdTopic(int clientFd, std::string data)
 
 void Server::cmdInvite(int clientFd, std::string data)
 {
-    
     if (data.empty())
         sendErrRep(461, clientFd, "INVITE", "", "");
     else if (!this->users.find(clientFd)->second.getIsConnected())
@@ -174,6 +214,9 @@ void Server::sendErrRep(int code, int clientFd, std::string command, std::string
     else if (code == 3) ss << ":irc.leet.com 003 " << u.getNickName() << " " << this->errRep.find(3)->second << " " << Utils::getDate() << "\r\n";
     else if (code == 4) ss << ":irc.leet.com 004 " << u.getNickName() << " " << this->errRep.find(4)->second  << "\r\n";
     else if (code == 5) ss << ":irc.leet.com 005 " << u.getNickName() << " " << this->errRep.find(5)->second << "\r\n";
+    else if (code == 432) ss << ":irc.leet.com 432 " << command << " " << u.getNickName() << " " << this->errRep.find(432)->second << "\r\n";
+    else if (code == 431) ss << ":irc.leet.com 431 " << command << " " << this->errRep.find(431)->second << "\r\n";
+    else if (code == 433) ss << ":irc.leet.com 433 " << command << " " << u.getNickName() << " " << this->errRep.find(433)->second << "\r\n";
     else if (code == 461) ss << ":irc.leet.com 461 " << command << this->errRep.find(461)->second << "\r\n";
     else if (code == 462) ss << ":irc.leet.com 462 " << command << this->errRep.find(462)->second << "\r\n";
     else if (code == 464) ss << ":irc.leet.com 464 " << command << this->errRep.find(464)->second << "\r\n";

@@ -33,7 +33,6 @@ void Server::listenServer()
 
 void Server::clientDisconnected(int clientFd)
 {
-
     close(clientFd);
     std::cout << Utils::getTime() << " " << this->users.at(clientFd).getNickName() << " has left the server." << std::endl;
     if (this->buffring.find(clientFd) != this->buffring.end()) 
@@ -115,14 +114,13 @@ void Server::acceptAndDecline()
     this->users[client_fd].setUserName("user" + std::to_string(number++));
     this->users[client_fd].joinChannel(&this->channels["general"]);
     this->channels["general"].setMode(2);
-    // std::cout << client_fd << std::endl;
-    // if (client_fd == 4)
-    // {
-    //     this->users[client_fd].joinChannel(&this->channels["data"]);
-    // }
+    std::cout << client_fd << std::endl;
+    if (client_fd == 4)
+    {
+        this->users[client_fd].joinChannel(&this->channels["data"]);
+    }
     // this->channels["general"].listUsers();
     // std::cout << Utils::getTime()<< " " << this->channels["general"].getUserNickByFd(client_fd) << " has joined the channel " << this->channels["general"].getName() << std::endl;
-
 }
 
 void Server::multipleClients()
