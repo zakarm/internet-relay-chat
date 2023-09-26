@@ -51,6 +51,10 @@ class Server{
         bool checkPass(std::string password);
         bool checkDuplicateNick(std::string nickName);
         int  getClientFdbyNick(std::string nick);
+        bool validNick(const std::string& data);
+        // void err_431(int clientFd);
+        // void err_432(int clientFd);
+        // void err_433(int clientFd);
         void cmdPass(int clientFd, std::string data);
         void cmdNick(int clientFd, std::string data);
         void cmdUser(int clientFd, std::string data);

@@ -56,6 +56,5 @@ class Channel{
             KEY = 32,
         };
         void listUsers();
-
 };
 #endif //CHANNEL_HPP
