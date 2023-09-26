@@ -116,10 +116,10 @@ void Server::acceptAndDecline()
     this->channels["general"].setMode(2);
     std::cout << client_fd << std::endl;
     if (client_fd == 4)
-    {
         this->users[client_fd].joinChannel(&this->channels["data"]);
-    }
-    // this->channels["general"].listUsers();
+    this->channels["data"].setMode(1);
+    this->channels["general"].listUsers();
+    this->channels["data"].listUsers();
     // std::cout << Utils::getTime()<< " " << this->channels["general"].getUserNickByFd(client_fd) << " has joined the channel " << this->channels["general"].getName() << std::endl;
 }
 

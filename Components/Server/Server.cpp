@@ -60,6 +60,7 @@ void Server::runServer()
     listenServer();
     this->pfds.push_back((struct pollfd){.fd = this->serverSocket, .events = POLLIN});
     this->channels.insert(std::make_pair("general", Channel("general")));
+    this->channels.insert(std::make_pair("data", Channel("data")));
     multipleClients();
 }
 
