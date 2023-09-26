@@ -50,14 +50,14 @@ class Server{
         void sendErrRep(int code, int clientFd, std::string command, std::string s1, std::string s2);
         bool checkPass(std::string password);
         bool checkDuplicateNick(std::string nickName);
+        int  getClientFdbyNick(std::string nick);
         void cmdPass(int clientFd, std::string data);
         void cmdNick(int clientFd, std::string data);
         void cmdUser(int clientFd, std::string data);
         void cmdTopic(int clientFd, std::string data);
+        void cmdInvite(int clientFd, std::string data);
         void authenticate(int clientFd);
         void runCommand(int clientFd, std::string command);
-        
-
 };
 
 #endif
