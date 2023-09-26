@@ -23,4 +23,5 @@ class Utils {
             std::string servName, std::string hostName);
         static std::string getDate();
 };
+
 #endif //UTILS_HPP

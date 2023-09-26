@@ -63,5 +63,5 @@ class Server{
         void authenticate(int clientFd);
         void runCommand(int clientFd, std::string command);
 };
-
+void   port_check(const char *port);
 #endif
