@@ -2,7 +2,7 @@ import subprocess
 import time
 
 server = "localhost"
-port = 5000
+port = 6667
 clients  = []
 for i in range(5000):
     clients.append("client"+str(i))

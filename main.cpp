@@ -1,11 +1,20 @@
 
 #include "Components/Server/Server.hpp"
 
+void sig_handler(int signum)
+{
+    if (signum == SIGINT)
+    {
+        std::cout << std::endl << Utils::getTime() << "CIH: SERVER TAYE7" << std::endl;
+        exit(EXIT_SUCCESS);
+    }
+}
 
 int main(int argc, char *argv[])
 { 
     if (argc == 3)
     {
+        signal(SIGINT, sig_handler);
         try
         {
             port_check(argv[1]);

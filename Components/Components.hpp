@@ -30,4 +30,6 @@
 #include <arpa/inet.h>
 #include <map>
 #include <queue>
+#include <signal.h>
+
 #endif

@@ -7,7 +7,7 @@
 void Server::authenticate(int clientFd)
 {
     User u = this->users.find(clientFd)->second;
-    if (!u.getUserName().empty() && !u.getNickName().empty() && u.getSetPass())
+    if (!u.getNickName().empty() && u.getSetPass())
     {
         for (int i = 1; i <= 5; i++)
             sendErrRep(i, clientFd, "", "", "");
@@ -66,6 +66,7 @@ void Server::cmdNick(int clientFd, std::string data)
             send(clientFd, msg.c_str(), msg.size(), 0);
         }
         this->users.find(clientFd)->second.setNickName(nickName);
+        authenticate(clientFd);
     }
 }
 
@@ -177,7 +178,7 @@ void Server::cmdInvite(int clientFd, std::string data)
                 else
                 {
                     this->users.find(target)->second.joinChannel(&(this->channels.find(channelName)->second));
-                    sendErrRep(341, clientFd, "INVITE", this->users.find(clientFd)->second.getNickName() + " has invited " + nickname, channelName);
+                    sendErrRep(341, clientFd, "INVITE", this->users.find(clientFd)->second.getNickName(), channelName);
                 }
             }
         }   
@@ -236,7 +237,7 @@ void Server::sendErrRep(int code, int clientFd, std::string command, std::string
     else if (code == 403) ss << ":irc.leet.com 403 " << command << " " << s1 << " " << s2 << this->errRep.find(403)->second << "\r\n";
     else if (code == 482) ss << ":irc.leet.com 482 " << command << " " << s1 << " " << s2 << this->errRep.find(482)->second << "\r\n";
     else if (code == 443) ss << ":irc.leet.com 443 " << command << " " << s1 << " " << s2 << this->errRep.find(443)->second << "\r\n";
-    else if (code == 341) ss << ":irc.leet.com 341 " << command << " " << s1 << " to the channel " << s2  << "\r\n";
+    else if (code == 341) ss << ":irc.leet.com 341 " << command << " " << s1 << " " << s2  << "\r\n";
     else if (code == 332) ss << ":irc.leet.com 332 " << s1 << " " << s2 << "\r\n";
     else if (code == 333) ss << ":irc.leet.com 333 " << s1 << " " << s2 << "\r\n";
     send(clientFd, ss.str().c_str(), ss.str().size(), 0);
