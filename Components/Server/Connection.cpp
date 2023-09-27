@@ -35,11 +35,13 @@ void Server::clientDisconnected(int clientFd)
 {
     close(clientFd);
     std::cout << Utils::getTime() << " " << this->users.at(clientFd).getNickName() << " has left the server." << std::endl;
-    if (this->buffring.find(clientFd) != this->buffring.end()) 
+    if (this->buffring.find(clientFd) != this->buffring.end())
         this->buffring.erase(this->buffring.find(clientFd));
+    if (this->nicks.find(this->users.at(clientFd).getNickName()) != this->nicks.end())
+        this->nicks.erase(this->nicks.find(this->users.at(clientFd).getNickName()));
     if (this->users.find(clientFd) != this->users.end())
         this->users.erase(this->users.find(clientFd));
-    
+
     for (std::vector<struct pollfd>::iterator it = this->pfds.begin(); it != this->pfds.end(); it++)
     {
         if (it->fd == clientFd)
@@ -52,7 +54,7 @@ void Server::clientDisconnected(int clientFd)
 
 std::string Server::joinBuffers(int indexClient, char *buffer)
 {
-    
+
     if (buffer[strlen(buffer) - 1] != '\n')
         this->buffring[this->pfds[indexClient].fd] += buffer;
     else
@@ -70,7 +72,7 @@ std::string Server::joinBuffers(int indexClient, char *buffer)
 }
 
 void Server::requests(int indexClient)
-{   
+{
     if (this->pfds[indexClient].revents & (POLLHUP | POLLERR))
         clientDisconnected(this->pfds[indexClient].fd);
     else if (this->pfds[indexClient].revents & POLLIN)
@@ -109,10 +111,10 @@ void Server::acceptAndDecline()
     if (client_fd == -1)
     {
         std::cerr << RED << "Error : accept failed (max_fd reached)" << DEFAULT << std::endl;
-        return ;
+        return;
     }
     std::cout << Utils::getTime() << " " << inet_ntoa(clientAddr.sin_addr)
-                << " has joined the server." << std::endl;
+              << " has joined the server." << std::endl;
     this->pfds.push_back((struct pollfd){.fd = client_fd, .events = POLLIN | POLLOUT});
     this->users.insert(std::make_pair(client_fd, User(client_fd)));
     // this->users[client_fd].setNickName("nick" + std::to_string(number++));

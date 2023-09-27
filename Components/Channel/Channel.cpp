@@ -81,6 +81,22 @@ void Channel::removeUser(int clientFd)
     }
 }
 
+void Channel::sendToAll(std::string sender, std::string message, bool all)
+{
+    message = ":" + sender + " PRIVMSG #" + this->name + " :" + message + "\r\n";
+
+    std::map<int, User *>::iterator it;
+    if (all)
+    {
+        for (it = this->users.begin(); it != this->users.end(); it++)
+            if (it->second->getNickName() != sender)
+                send(it->first, message.c_str(), message.size(), 0);
+    }
+    for (it = this->operators.begin(); it != this->operators.end(); it++)
+        if (it->second->getNickName() != sender)
+            send(it->first, message.c_str(), message.size(), 0);
+}
+
 int Channel::getMode() const
 {
     return this->mode;

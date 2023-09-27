@@ -82,7 +82,7 @@ bool Server::checkPass(std::string password)
     return true;
 }
 
-int Server::getClientFdbyNick(std::string nick)
+int Server::getUserFdByNick(std::string nick)
 {
     for (size_t i = 0; i < this->users.size(); i++)
     {
@@ -97,4 +97,19 @@ int Server::getClientFdbyNick(std::string nick)
 Server::~Server()
 {
 
+}
+
+
+
+
+///////////////
+
+void Server::addToResponse(int clientFd, std::string response)
+{
+    this->responses.push(std::make_pair(clientFd, response));
+}
+
+int Server::getUserFdByNick(std::string nick) const
+{
+    return this->nicks.find(nick) != this->nicks.end() ? this->nicks.find(nick)->second : -1;
 }

@@ -170,7 +170,7 @@ void Server::cmdInvite(int clientFd, std::string data)
                 sendErrRep(482, clientFd, "INVITE", this->users.find(clientFd)->second.getNickName(), channelName);
         else 
         {
-            int target = getClientFdbyNick(nickname);
+            int target = getUserFdByNick(nickname);
             if (target != -1)
             {
                 if (this->users.find(target)->second.isInChannel(channelName))
@@ -212,7 +212,7 @@ void Server::cmdKick(int clientFd, std::string data)
             std::stringstream nicknames(nickName);
             while (std::getline(nicknames, nickName, ','))
             {
-                int target = getClientFdbyNick(nickName);
+                int target = getUserFdByNick(nickName);
                 if (target != -1)
                 {
                     if (!this->users.find(target)->second.isInChannel(channelName))
@@ -261,6 +261,10 @@ void Server::runCommand(int clientFd, std::string command)
             cmdInvite(clientFd, cmdParam);
         else if (Utils::stolower(cmdName) == "kick")
             cmdKick(clientFd, cmdParam);
+        else if (Utils::stolower(cmdName) == "privmsg")
+            cmdPrivMsg(clientFd, cmdParam);
+        else if (Utils::stolower(cmdName) == "ping")
+            return ;
         else if (Utils::stolower(cmdName) == "pong")
             return ;
         else
@@ -296,4 +300,69 @@ void Server::sendErrRep(int code, int clientFd, std::string command, std::string
     else if (code == 333) ss << ":irc.leet.com 333 " << s1 << " " << s2 << "\r\n";
     send(clientFd, ss.str().c_str(), ss.str().size(), 0);
     ss.clear();
+}
+
+
+void Server::cmdPrivMsg(int clientFd, std::string data)
+{
+    if (!this->users.find(clientFd)->second.getIsConnected())
+    {
+        std::stringstream err;
+        err << ":irc.leet.com 451 PRIVMSG " << this->errRep.find(451)->second << "\r\n";
+        send(clientFd, err.str().c_str(), err.str().size(), 0);
+        err.clear();
+        return;
+    }
+    if (data.empty())
+    {
+        std::stringstream err;
+        err << ":irc.leet.com 411 PRIVMSG " << this->errRep.find(411)->second << "\r\n";
+        send(clientFd, err.str().c_str(), err.str().size(), 0);
+        err.clear();
+        return;
+    }
+
+    std::stringstream ss(data);
+    std::string targets, message, target;
+
+    ss >> targets;
+    ss >> std::ws;
+    std::getline(ss, message);
+
+    if (message.empty())
+    {
+        std::stringstream err;
+        err << ":irc.leet.com 412 PRIVMSG " << this->errRep.find(412)->second << "\r\n";
+        send(clientFd, err.str().c_str(), err.str().size(), 0);
+        err.clear();
+        return;
+    }
+    if (message[0] == ':')
+        message = message.substr(1, message.length() - 1);
+
+    std::stringstream ss2(targets);
+    while (std::getline(ss2, target, ','))
+    {
+        if (target.empty())
+            continue;
+        std::cout << "target: " << target << std::endl;
+        if (target[0] == '#' || target[1] == '#')
+        {
+            int to;
+            to = target[0] == '%' ?  1 : 0;
+            target = target.substr(1 + to, target.length() - 1);
+            if (this->channels.find(target) != this->channels.end())
+                this->channels[target].sendToAll(this->users[clientFd].getNickName(), message, !to);
+            else
+            {
+                std::stringstream err;
+                err << ":irc.leet.com 401 PRIVMSG " << target << " " << this->errRep.find(401)->second << "\r\n";
+                send(clientFd, err.str().c_str(), err.str().size(), 0);
+                err.clear();
+            }
+        }
+        else
+        this->addToResponse(this->getUserFdByNick(target), ":" + this->users[clientFd].getNickName() + " PRIVMSG " + target + " :" + message + "\r\n");
+    }
+    std::cout << "message: " << message << std::endl;
 }

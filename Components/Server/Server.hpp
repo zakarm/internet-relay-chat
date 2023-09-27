@@ -18,6 +18,7 @@ class Server{
         std::map<int, std::string> buffring;
         std::map<int, User> users;
         std::map<std::string, Channel> channels;
+        std::map<std::string, int> nicks;
         std::map<int, std::string> errRep;
 
     public :
@@ -34,6 +35,8 @@ class Server{
         void setPort(unsigned int port);
         std::string getPassword() const;
         void setPassword(std::string password);
+        int getUserFdByNick(std::string nick) const;
+
 
         void customException(std::string errorMessage);
         void noBlockingFd();
@@ -50,7 +53,7 @@ class Server{
         void sendErrRep(int code, int clientFd, std::string command, std::string s1, std::string s2);
         bool checkPass(std::string password);
         bool checkDuplicateNick(std::string nickName);
-        int  getClientFdbyNick(std::string nick);
+        int  getUserFdByNick(std::string nick);
         bool validNick(const std::string& data);
         void cmdPass(int clientFd, std::string data);
         void cmdNick(int clientFd, std::string data);
@@ -61,6 +64,15 @@ class Server{
         void cmdJoin(int clientFd, std::string data);
         void authenticate(int clientFd);
         void runCommand(int clientFd, std::string command);
+
+
+        /////
+
+        void cmdPrivMsg(int clientFd, std::string data);
+        void addToResponse(int clientFd, std::string response);
+
+
+
 };
 void   port_check(const char *port);
 #endif
