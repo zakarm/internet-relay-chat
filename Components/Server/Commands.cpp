@@ -179,7 +179,7 @@ void Server::cmdInvite(int clientFd, std::string data)
                     sendErrRep(443, clientFd, "INVITE", this->users.find(clientFd)->second.getNickName(), channelName);
                 else
                 {
-                    this->users.find(target)->second.joinChannel(&(this->channels.find(channelName)->second));
+                    this->users.find(target)->second.inviteChannel(&(this->channels.find(channelName)->second));
                     sendErrRep(341, clientFd, "INVITE", this->users.find(clientFd)->second.getNickName(), channelName);
                 }
             }
@@ -428,5 +428,5 @@ void    Server::parse_cmdUser(int clientFd, std::string data)
     {
         this->users.find(clientFd)->second.setRealName(realname);
         this->users.find(clientFd)->second.setUserName(username);
-    } 
+    }
 }
