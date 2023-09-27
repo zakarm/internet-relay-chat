@@ -13,10 +13,12 @@ class Channel{
         std::map<int, User*> users;
         std::map<int, User*> operators;
         std::vector<std::string> banList;
+        
         int limit;
         int mode;
 
     public :
+    std::map<int, User*> invited;
         Channel();
         Channel(std::string name, User *user);
         Channel(std::string name);
@@ -43,6 +45,7 @@ class Channel{
         bool isOperator(int clientFd);
         void unsetMode(int mode);
         void addUser(User *user);
+        void addInvited(User *user);
         void addOperator(User *user);
         void removeUser(int clientFd);
         void sendToAll(std::string sender, std::string message, bool all = true);

@@ -87,7 +87,14 @@ void User::joinChannel(Channel* channel)
     channel->addUser(this);
 }
 
-void User::leaveChannel(Channel* channel)
+void User::inviteChannel(Channel* channel)
+{
+    if(this->isInChannel(channel->getName()))
+        return;
+    channel->addInvited(this);
+}
+
+void User::leaveChannel(Channel* channel) 
 {
     if(!this->isInChannel(channel->getName()))
         return; // send not in channel.
@@ -99,6 +106,7 @@ bool User::isInChannel(std::string channelName)
 {
     return this->channels.find(channelName) != this->channels.end();
 }
+
 
 User::~User()
 {
