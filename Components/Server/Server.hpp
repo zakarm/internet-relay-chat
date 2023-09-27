@@ -52,14 +52,13 @@ class Server{
         bool checkDuplicateNick(std::string nickName);
         int  getClientFdbyNick(std::string nick);
         bool validNick(const std::string& data);
-        // void err_431(int clientFd);
-        // void err_432(int clientFd);
-        // void err_433(int clientFd);
         void cmdPass(int clientFd, std::string data);
         void cmdNick(int clientFd, std::string data);
         void cmdUser(int clientFd, std::string data);
         void cmdTopic(int clientFd, std::string data);
         void cmdInvite(int clientFd, std::string data);
+        void cmdKick(int clientFd, std::string data);
+        void cmdJoin(int clientFd, std::string data);
         void authenticate(int clientFd);
         void runCommand(int clientFd, std::string command);
 };
