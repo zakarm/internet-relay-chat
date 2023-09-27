@@ -34,7 +34,6 @@ class Channel{
         std::string getUserNickByFd(int fd) const;
         const std::map<int, User*>& getUsers() const;
         const std::map<int, User*>& getOperators() const;
-        std::vector<std::string> getBanList() const;
         int getLimit() const;
         
         int getMode() const;
@@ -46,6 +45,7 @@ class Channel{
         void addUser(User *user);
         void addOperator(User *user);
         void removeUser(int clientFd);
+        void sendToAll(std::string sender, std::string message, bool all = true);
         enum MODES{
             NO_MODE = 0,
             INVITE_ONLY = 1,
