@@ -24,10 +24,8 @@ void Server::cmdPass(int clientFd, std::string data)
         sendErrRep(462, clientFd, "PASS", "", "");
     else if (!checkPass(data))
         sendErrRep(464, clientFd, "PASS", "", "");
-    else {
+    else
         this->users.find(clientFd)->second.setSetPass(true);
-        authenticate(clientFd);
-    }
 }
 
 void   port_check(const char *port)
@@ -43,6 +41,8 @@ void   port_check(const char *port)
 
 void Server::cmdNick(int clientFd, std::string data)
 {
+    if (!this->users[clientFd].getSetPass())
+        {sendErrRep(451, clientFd, "", "", ""); return ;}
     std::stringstream ss(data);
     std::string nickName;
     ss >> nickName;
@@ -276,28 +276,28 @@ void Server::sendErrRep(int code, int clientFd, std::string command, std::string
 {
     std::stringstream ss;
     User u = this->users.find(clientFd)->second;
-    if (code == 1) ss << ":irc.leet.com 001 " <<  u.getNickName() << " " << this->errRep.find(1)->second << " " << u.getNickName() << "\r\n";
-    else if (code == 2) ss << ":irc.leet.com 002 " << u.getNickName() << " " << this->errRep.find(2)->second << " v1" << "\r\n";
-    else if (code == 3) ss << ":irc.leet.com 003 " << u.getNickName() << " " << this->errRep.find(3)->second << " " << Utils::getDate() << "\r\n";
-    else if (code == 4) ss << ":irc.leet.com 004 " << u.getNickName() << " " << this->errRep.find(4)->second  << "\r\n";
-    else if (code == 5) ss << ":irc.leet.com 005 " << u.getNickName() << " " << this->errRep.find(5)->second << "\r\n";
-    else if (code == 432) ss << ":irc.leet.com 432 " << command << " " << u.getNickName() << " " << this->errRep.find(432)->second << "\r\n";
-    else if (code == 431) ss << ":irc.leet.com 431 " << command << " " << this->errRep.find(431)->second << "\r\n";
-    else if (code == 433) ss << ":irc.leet.com 433 " << command << " " << u.getNickName() << " " << this->errRep.find(433)->second << "\r\n";
-    else if (code == 461) ss << ":irc.leet.com 461 " << command << this->errRep.find(461)->second << "\r\n";
-    else if (code == 462) ss << ":irc.leet.com 462 " << command << this->errRep.find(462)->second << "\r\n";
-    else if (code == 464) ss << ":irc.leet.com 464 " << command << this->errRep.find(464)->second << "\r\n";
-    else if (code == 421) ss << ":irc.leet.com 421 " << command << " " << this->errRep.find(421)->second << "\r\n";
-    else if (code == 331) ss << ":irc.leet.com 331 " << s1 << " " << s2 << " " << this->errRep.find(331)->second << "\r\n";
-    else if (code == 442) ss << ":irc.leet.com 442 " << command << " " << s1 << " " << s2 << this->errRep.find(442)->second << "\r\n";
-    else if (code == 441) ss << ":irc.leet.com 442 " << command << " " << s1 << " " << s2 << this->errRep.find(441)->second << "\r\n";
-    else if (code == 451) ss << ":irc.leet.com 451 " << command << this->errRep.find(451)->second << "\r\n";
-    else if (code == 403) ss << ":irc.leet.com 403 " << command << " " << s1 << " " << s2 << this->errRep.find(403)->second << "\r\n";
-    else if (code == 482) ss << ":irc.leet.com 482 " << command << " " << s1 << " " << s2 << this->errRep.find(482)->second << "\r\n";
-    else if (code == 443) ss << ":irc.leet.com 443 " << command << " " << s1 << " " << s2 << this->errRep.find(443)->second << "\r\n";
-    else if (code == 341) ss << ":irc.leet.com 341 " << command << " " << s1 << " " << s2  << "\r\n";
-    else if (code == 332) ss << ":irc.leet.com 332 " << s1 << " " << s2 << "\r\n";
-    else if (code == 333) ss << ":irc.leet.com 333 " << s1 << " " << s2 << "\r\n";
+    if (code == 1)          ss << ":irc.leet.com 001 " << u.getNickName() << " " << this->errRep.find(1)->second    << " " << u.getNickName() << "\r\n";
+    else if (code == 2)     ss << ":irc.leet.com 002 " << u.getNickName() << " " << this->errRep.find(2)->second    << " v1" << "\r\n";
+    else if (code == 3)     ss << ":irc.leet.com 003 " << u.getNickName() << " " << this->errRep.find(3)->second    << " " << Utils::getDate() << "\r\n";
+    else if (code == 4)     ss << ":irc.leet.com 004 " << u.getNickName() << " " << this->errRep.find(4)->second    << "\r\n";
+    else if (code == 5)     ss << ":irc.leet.com 005 " << u.getNickName() << " " << this->errRep.find(5)->second    << "\r\n";
+    else if (code == 431)   ss << ":irc.leet.com 431 " << command         << " " << this->errRep.find(431)->second  << "\r\n";
+    else if (code == 421)   ss << ":irc.leet.com 421 " << command         << " " << this->errRep.find(421)->second  << "\r\n";
+    else if (code == 331)   ss << ":irc.leet.com 331 " << s1              << " " << s2 << " " << this->errRep.find(331)->second << "\r\n";
+    else if (code == 442)   ss << ":irc.leet.com 442 " << command         << " " << s1 << " " << s2 << this->errRep.find(442)->second << "\r\n";
+    else if (code == 441)   ss << ":irc.leet.com 442 " << command         << " " << s1 << " " << s2 << this->errRep.find(441)->second << "\r\n";
+    else if (code == 403)   ss << ":irc.leet.com 403 " << command         << " " << s1 << " " << s2 << this->errRep.find(403)->second << "\r\n";
+    else if (code == 482)   ss << ":irc.leet.com 482 " << command         << " " << s1 << " " << s2 << this->errRep.find(482)->second << "\r\n";
+    else if (code == 443)   ss << ":irc.leet.com 443 " << command         << " " << s1 << " " << s2 << this->errRep.find(443)->second << "\r\n";
+    else if (code == 433)   ss << ":irc.leet.com 433 " << command         << " " << u.getNickName() << " " << this->errRep.find(433)->second << "\r\n";
+    else if (code == 432)   ss << ":irc.leet.com 432 " << command         << " " << u.getNickName() << " " << this->errRep.find(432)->second << "\r\n";
+    else if (code == 451)   ss << ":irc.leet.com 451 " << command         <<        this->errRep.find(451)->second << "\r\n";
+    else if (code == 461)   ss << ":irc.leet.com 461 " << command         <<        this->errRep.find(461)->second << "\r\n";
+    else if (code == 462)   ss << ":irc.leet.com 462 " << command         <<        this->errRep.find(462)->second << "\r\n";
+    else if (code == 464)   ss << ":irc.leet.com 464 " << command         <<        this->errRep.find(464)->second << "\r\n";
+    else if (code == 341)   ss << ":irc.leet.com 341 " << command         << " " << s1 << " " << s2  << "\r\n";
+    else if (code == 332)   ss << ":irc.leet.com 332 " << s1              << " " << s2 << "\r\n";
+    else if (code == 333)   ss << ":irc.leet.com 333 " << s1              << " " << s2 << "\r\n";
     send(clientFd, ss.str().c_str(), ss.str().size(), 0);
     ss.clear();
 }
@@ -366,3 +366,10 @@ void Server::cmdPrivMsg(int clientFd, std::string data)
     }
     std::cout << "message: " << message << std::endl;
 }
+
+
+///
+// void Server::cmdJoin(int clientfd, std::string data)
+// {
+//     return;
+// }

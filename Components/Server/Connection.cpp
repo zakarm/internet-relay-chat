@@ -85,6 +85,7 @@ void Server::requests(int indexClient)
             clientDisconnected(this->pfds[indexClient].fd);
         else
             runCommand(this->pfds[indexClient].fd, joinBuffers(indexClient, buffer));
+        std::cout << "buffer; "<< buffer << std::endl;
     }
     else if (this->pfds[indexClient].revents & POLLOUT)
     {
