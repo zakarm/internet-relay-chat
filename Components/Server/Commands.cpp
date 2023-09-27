@@ -194,26 +194,45 @@ void Server::cmdKick(int clientFd, std::string data)
     else
     {
         std::stringstream ss(data);
-        std::string channelName, nickName, Comment;
+        std::string channelName, nickName, comment;
         ss >> channelName;
         ss >> std::ws;
         ss >> nickName;
+        ss >> comment;
         if (channelName.empty() || nickName.empty())
             sendErrRep(461, clientFd, "KICK", "", "");
         else if (this->channels.find(channelName) == this->channels.end())
-            sendErrRep(403, clientFd, "INVITE", this->users.find(clientFd)->second.getNickName(), channelName);
+            sendErrRep(403, clientFd, "KICK", this->users.find(clientFd)->second.getNickName(), channelName);
         else if (!this->users.find(clientFd)->second.isInChannel(channelName))
-            sendErrRep(442, clientFd, "INVITE", this->users.find(clientFd)->second.getNickName(), channelName);
-        else if (this->channels.find(channelName)->second.getMode() == 1 && !this->channels.find(channelName)->second.isOperator(clientFd))
-                sendErrRep(482, clientFd, "INVITE", this->users.find(clientFd)->second.getNickName(), channelName);
-        // else
-        // {
-        //     while (std::getline(ss, nickName, ','))
-        //     {
-        //         std::cout << nickName << std::endl;
-        //     }
-        // }
-        
+            sendErrRep(442, clientFd, "KICK", this->users.find(clientFd)->second.getNickName(), channelName);
+        else if (!this->channels.find(channelName)->second.isOperator(clientFd))
+                sendErrRep(482, clientFd, "KICK", this->users.find(clientFd)->second.getNickName(), channelName);
+        else 
+        {
+            std::stringstream nicknames(nickName);
+            while (std::getline(nicknames, nickName, ','))
+            {
+                int target = getClientFdbyNick(nickName);
+                if (target != -1)
+                {
+                    if (!this->users.find(target)->second.isInChannel(channelName))
+                        sendErrRep(441, clientFd, "KICK", this->users.find(clientFd)->second.getNickName(), channelName);
+                    else
+                    {
+                        if (comment[0] == ':')
+                        {
+                            std::stringstream rep;
+                            rep << ":" << this->users.find(clientFd)->second.getNickName() << " KICK " << channelName << " " << nickName;
+                            send(target, rep.str().c_str(), rep.str().size(), 0);
+                        }
+                        this->users.find(target)->second.leaveChannel(&(this->channels.find(channelName)->second));
+                    }
+                }
+                else
+                    sendErrRep(441, clientFd, "KICK", this->users.find(clientFd)->second.getNickName(), channelName);
+
+            }
+        }
     }
 }
 
@@ -267,6 +286,7 @@ void Server::sendErrRep(int code, int clientFd, std::string command, std::string
     else if (code == 421) ss << ":irc.leet.com 421 " << command << " " << this->errRep.find(421)->second << "\r\n";
     else if (code == 331) ss << ":irc.leet.com 331 " << s1 << " " << s2 << " " << this->errRep.find(331)->second << "\r\n";
     else if (code == 442) ss << ":irc.leet.com 442 " << command << " " << s1 << " " << s2 << this->errRep.find(442)->second << "\r\n";
+    else if (code == 441) ss << ":irc.leet.com 442 " << command << " " << s1 << " " << s2 << this->errRep.find(441)->second << "\r\n";
     else if (code == 451) ss << ":irc.leet.com 451 " << command << this->errRep.find(451)->second << "\r\n";
     else if (code == 403) ss << ":irc.leet.com 403 " << command << " " << s1 << " " << s2 << this->errRep.find(403)->second << "\r\n";
     else if (code == 482) ss << ":irc.leet.com 482 " << command << " " << s1 << " " << s2 << this->errRep.find(482)->second << "\r\n";
