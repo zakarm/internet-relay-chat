@@ -185,6 +185,38 @@ void Server::cmdInvite(int clientFd, std::string data)
     }
 }
 
+void Server::cmdKick(int clientFd, std::string data)
+{
+    if (data.empty())
+        sendErrRep(461, clientFd, "KICK", "", "");
+    else if (!this->users.find(clientFd)->second.getIsConnected())
+        sendErrRep(451, clientFd, "KICK", "", "");
+    else
+    {
+        std::stringstream ss(data);
+        std::string channelName, nickName, Comment;
+        ss >> channelName;
+        ss >> std::ws;
+        ss >> nickName;
+        if (channelName.empty() || nickName.empty())
+            sendErrRep(461, clientFd, "KICK", "", "");
+        else if (this->channels.find(channelName) == this->channels.end())
+            sendErrRep(403, clientFd, "INVITE", this->users.find(clientFd)->second.getNickName(), channelName);
+        else if (!this->users.find(clientFd)->second.isInChannel(channelName))
+            sendErrRep(442, clientFd, "INVITE", this->users.find(clientFd)->second.getNickName(), channelName);
+        else if (this->channels.find(channelName)->second.getMode() == 1 && !this->channels.find(channelName)->second.isOperator(clientFd))
+                sendErrRep(482, clientFd, "INVITE", this->users.find(clientFd)->second.getNickName(), channelName);
+        // else
+        // {
+        //     while (std::getline(ss, nickName, ','))
+        //     {
+        //         std::cout << nickName << std::endl;
+        //     }
+        // }
+        
+    }
+}
+
 void Server::runCommand(int clientFd, std::string command)
 {
     if (!command.empty())
@@ -208,6 +240,8 @@ void Server::runCommand(int clientFd, std::string command)
             cmdTopic(clientFd, cmdParam);
         else if (Utils::stolower(cmdName) == "invite")
             cmdInvite(clientFd, cmdParam);
+        else if (Utils::stolower(cmdName) == "kick")
+            cmdKick(clientFd, cmdParam);
         else if (Utils::stolower(cmdName) == "pong")
             return ;
         else
