@@ -83,8 +83,10 @@ bool Server::validNick(const std::string& data)
 
 void Server::cmdUser(int clientFd, std::string data)
 {
-    (void)clientFd;
-    (void)data;
+   if (data.empty() || countWords(data) < 3)
+        sendErrRep(461, clientFd, "USER", "", "");
+    parse_cmdUser(clientFd, data);
+    return;
 }
 
 void Server::cmdTopic(int clientFd, std::string data)
@@ -373,3 +375,58 @@ void Server::cmdPrivMsg(int clientFd, std::string data)
 // {
 //     return;
 // }
+
+//////////////////////////////////////////////////////////
+//                   cdmUser helper's                   //
+//////////////////////////////////////////////////////////
+
+int Server::countWords(std::string data)
+{
+    int count = 0;
+    std::stringstream ss(data);
+    std::string word;
+    while (ss >> word)
+        count++;
+    return count;
+}
+bool Server::checkDuplicateUser(std::string username)
+{
+    std::map<int, User>::iterator it;
+    for (it = this->users.begin(); it != this->users.end(); it++)
+        if (it->second.getUserName() == username)
+            return false;
+    return true;
+}
+bool    Server::check_user(const std::string& username, const std::string& mode, const std::string& asterisk)
+{
+    if (username.empty() || mode.empty() || asterisk.empty())
+        return false; 
+    if(mode[0] != '0' || mode.length() != 1)
+        return false;
+    if (asterisk[0] != '*' || asterisk.length() != 1)
+        return false;
+    // if (realname[0] != ':')
+    //     return false;
+    return true;
+}
+
+void    Server::parse_cmdUser(int clientFd, std::string data)
+{
+    std::stringstream s(data);
+    std::string username, mode, asterisk, realname;
+    s >> username >> mode >> asterisk;
+    std::getline(s, realname);
+    std::string::iterator it = realname.begin();
+    while (it != realname.end() && isspace(*it)) 
+        ++it;
+    realname.erase(realname.begin(), it);
+    if(!check_user(username, mode, asterisk))
+        sendErrRep(461, clientFd, "USER", "", "");
+    else if (!checkDuplicateUser(username))
+        sendErrRep(462, clientFd, "USER", "", "");
+    else
+    {
+        this->users.find(clientFd)->second.setRealName(realname);
+        this->users.find(clientFd)->second.setUserName(username);
+    } 
+}
