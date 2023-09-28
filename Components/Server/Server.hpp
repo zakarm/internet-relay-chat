@@ -64,7 +64,7 @@ class Server{
         void authenticate(int clientFd);
         void runCommand(int clientFd, std::string command);
         void cmdUser(int clientFd, std::string data);
-        void parse_cmdUser(int clientFd, std::string data);
+        int  userCheck(std::string data);
         bool check_user(const std::string& username, const std::string& mode, const std::string& asterisk);
         int  countWords(std::string data);
         bool checkDuplicateUser(std::string username);
