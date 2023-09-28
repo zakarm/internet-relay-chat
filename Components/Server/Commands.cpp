@@ -83,10 +83,25 @@ bool Server::validNick(const std::string& data)
 
 void Server::cmdUser(int clientFd, std::string data)
 {
-   if (data.empty() || countWords(data) < 3)
-        sendErrRep(461, clientFd, "USER", "", "");
-    parse_cmdUser(clientFd, data);
-    return;
+    int err = userCheck(data);
+    if (err == 461 || err == 462)
+    {
+        sendErrRep(err, clientFd, "USER", "", "");
+        return;
+    }
+    std::stringstream s(data);
+    std::string username, mode, asterisk, realname;
+    s >> username >> mode >> asterisk;
+    std::getline(s, realname);
+    std::string::iterator it = realname.begin();
+    while(it!= realname.end() && isspace(*it))
+        it++;
+    realname.erase(realname.begin(), it);
+    if (realname[0] == ':')
+        realname = realname.substr(1, realname.length() - 1);
+    this->users[clientFd].setRealName(realname);
+    this->users[clientFd].setUserName(username);
+    //authenticate(clientFd);
 }
 
 void Server::cmdTopic(int clientFd, std::string data)
@@ -399,34 +414,27 @@ bool Server::checkDuplicateUser(std::string username)
 }
 bool    Server::check_user(const std::string& username, const std::string& mode, const std::string& asterisk)
 {
-    if (username.empty() || mode.empty() || asterisk.empty())
+     if (username.empty() || mode.empty() || asterisk.empty() || username == "\"\"" || username == "''")
         return false; 
     if(mode[0] != '0' || mode.length() != 1)
         return false;
     if (asterisk[0] != '*' || asterisk.length() != 1)
+        return false;
+    if (username.length() == 2 && username[0] == '"' && username[1] == '"')
         return false;
     // if (realname[0] != ':')
     //     return false;
     return true;
 }
 
-void    Server::parse_cmdUser(int clientFd, std::string data)
+int Server::userCheck(std::string data)
 {
     std::stringstream s(data);
-    std::string username, mode, asterisk, realname;
+    std::string username, mode, asterisk;
     s >> username >> mode >> asterisk;
-    std::getline(s, realname);
-    std::string::iterator it = realname.begin();
-    while (it != realname.end() && isspace(*it)) 
-        ++it;
-    realname.erase(realname.begin(), it);
-    if(!check_user(username, mode, asterisk))
-        sendErrRep(461, clientFd, "USER", "", "");
+    if (!check_user(username, mode, asterisk))
+        return (461);
     else if (!checkDuplicateUser(username))
-        sendErrRep(462, clientFd, "USER", "", "");
-    else
-    {
-        this->users.find(clientFd)->second.setRealName(realname);
-        this->users.find(clientFd)->second.setUserName(username);
-    }
+        return (462);
+    return (1);
 }
