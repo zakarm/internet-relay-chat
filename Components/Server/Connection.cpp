@@ -89,11 +89,6 @@ void Server::requests(int indexClient)
     }
     else if (this->pfds[indexClient].revents & POLLOUT)
     {
-        // static int ii = 0;
-        // std::stringstream ss;
-        // ss << "HELLO :" << ii << std::endl;
-        // send(this->pfds[indexClient].fd, ss.str().c_str(), ss.str().size(), 0);
-        // ii++;
         if (!this->responses.empty())
         {
             std::pair<int, std::string> response = this->responses.front();
@@ -105,7 +100,6 @@ void Server::requests(int indexClient)
 
 void Server::acceptAndDecline()
 {
-    // static int number = 0;
     struct sockaddr_in clientAddr;
     unsigned int csocketLen = sizeof(clientAddr);
     int client_fd = accept(this->serverSocket, (sockaddr *)&clientAddr, (socklen_t *)&csocketLen);
@@ -118,13 +112,7 @@ void Server::acceptAndDecline()
               << " has joined the server." << std::endl;
     this->pfds.push_back((struct pollfd){.fd = client_fd, .events = POLLIN | POLLOUT});
     this->users.insert(std::make_pair(client_fd, User(client_fd)));
-    // this->users[client_fd].setNickName("nick" + std::to_string(number++));
-    // this->users[client_fd].setUserName("user" + std::to_string(number++));
     this->users[client_fd].joinChannel(&this->channels["general"]);
-    // this->channels["general"].setMode(2);
-    // this->channels["general"].listUsers();
-    // this->channels["data"].listUsers();
-    // std::cout << Utils::getTime()<< " " << this->channels["general"].getUserNickByFd(client_fd) << " has joined the channel " << this->channels["general"].getName() << std::endl;
 }
 
 void Server::multipleClients()

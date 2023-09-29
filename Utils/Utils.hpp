@@ -22,6 +22,7 @@ class Utils {
         static void loadErrorsReplies(std::map<int, std::string> &errRep, std::string netName, 
             std::string servName, std::string hostName);
         static std::string getDate();
+        int countWords(std::string data);
 };
 
 #endif //UTILS_HPP
