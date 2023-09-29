@@ -12,7 +12,8 @@ class Channel{
         std::string topic;
         std::map<int, User*> users;
         std::map<int, User*> operators;
-        std::vector<std::string> banList;
+        std::vector<std::string> InviteList;
+        int memberCount;
         int limit;
         int mode;
 
@@ -46,6 +47,7 @@ class Channel{
         void addOperator(User *user);
         void removeUser(int clientFd);
         void sendToAll(std::string sender, std::string message, bool all = true);
+        void sendNames(int clientFd);
         enum MODES{
             NO_MODE = 0,
             INVITE_ONLY = 1,
