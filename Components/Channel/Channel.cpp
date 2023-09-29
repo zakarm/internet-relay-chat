@@ -61,11 +61,16 @@ void Channel::addUser(User *user)
     this->users.insert(std::make_pair(user->getClientFd(), user));
 }
 
-void Channel::addInvited(User *user)
+bool Channel::isInvited(std::string nickName)
 {
-    if (this->invited.find(user->getClientFd()) != this->invited.end())
+    return std::find(this->invited.begin(), this->invited.end(), nickName) != this->invited.end();
+}
+
+void Channel::addInvited(std::string nickName)
+{
+    if (isInvited(nickName))
         return;
-    this->invited.insert(std::make_pair(user->getClientFd(), user));
+    this->invited.push_back(nickName);
 }
 
 void Channel::addOperator(User *user)

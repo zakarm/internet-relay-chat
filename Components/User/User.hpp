@@ -50,7 +50,6 @@ class User
         std::string getInfo() const;
         void sendMessage(std::string message);
         void joinChannel(Channel* channel);
-        void inviteChannel(Channel* channel);
         void leaveChannel(Channel* channel);
         bool isInChannel(std::string channelName);
 };

@@ -87,13 +87,6 @@ void User::joinChannel(Channel* channel)
     channel->addUser(this);
 }
 
-void User::inviteChannel(Channel* channel)
-{
-    if(this->isInChannel(channel->getName()))
-        return;
-    channel->addInvited(this);
-}
-
 void User::leaveChannel(Channel* channel) 
 {
     if(!this->isInChannel(channel->getName()))
