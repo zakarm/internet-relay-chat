@@ -85,7 +85,7 @@ void Server::requests(int indexClient)
             clientDisconnected(this->pfds[indexClient].fd);
         else
             runCommand(this->pfds[indexClient].fd, joinBuffers(indexClient, buffer));
-        std::cout << "buffer; "<< buffer << std::endl;
+        std::cout << "buffer: "<< buffer << std::endl;
     }
     else if (this->pfds[indexClient].revents & POLLOUT)
     {
@@ -121,10 +121,7 @@ void Server::acceptAndDecline()
     // this->users[client_fd].setNickName("nick" + std::to_string(number++));
     // this->users[client_fd].setUserName("user" + std::to_string(number++));
     this->users[client_fd].joinChannel(&this->channels["general"]);
-    this->channels["general"].setMode(2);
-    if (client_fd == 4)
-        this->users[client_fd].joinChannel(&this->channels["data"]);
-    this->channels["data"].setMode(1);
+    // this->channels["general"].setMode(2);
     // this->channels["general"].listUsers();
     // this->channels["data"].listUsers();
     // std::cout << Utils::getTime()<< " " << this->channels["general"].getUserNickByFd(client_fd) << " has joined the channel " << this->channels["general"].getName() << std::endl;

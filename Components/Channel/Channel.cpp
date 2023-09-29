@@ -8,7 +8,10 @@ Channel::Channel() : name("")
 {
     this->key = "";
     this->topic = "";
-    this->mode = 0;
+    this->limit = 0;
+    this->memberCount = 0;
+    this->mode = NO_MODE;
+
 }
 
 Channel::Channel(std::string name, User *user) : name(name)
@@ -16,12 +19,18 @@ Channel::Channel(std::string name, User *user) : name(name)
     this->operators.insert(std::make_pair(user->getClientFd(), user));
     this->key = "";
     this->topic = "";
-    this->mode = 0;
+    this->limit = 0;
+    this->memberCount = 0;
+    this->mode = NO_MODE;
+
 }
 
 Channel::Channel(std::string name) : name(name)
 {
 
+    this->name = name;
+    this->limit = 0;
+    this->memberCount = 0;
     this->key = "";
     this->topic = "";
     this->mode = NO_MODE;
@@ -51,14 +60,18 @@ std::string Channel::getUserNickByFd(int fd) const { return this->users.at(fd)->
 /**************************************************************/
 void Channel::addUser(User *user)
 {
+
     if (!this->operators.size())
     {
         addOperator(user);
         return;
     }
+    if (this->operators.find(user->getClientFd()) != this->operators.end())
+        return;
     if (this->users.find(user->getClientFd()) != this->users.end())
         return;
     this->users.insert(std::make_pair(user->getClientFd(), user));
+    this->memberCount++;
 }
 
 void Channel::addOperator(User *user)
@@ -66,6 +79,7 @@ void Channel::addOperator(User *user)
     if (this->operators.find(user->getClientFd()) != this->operators.end())
         return;
     this->operators.insert(std::make_pair(user->getClientFd(), user));
+    this->memberCount++;
 }
 
 void Channel::removeUser(int clientFd)
@@ -79,6 +93,7 @@ void Channel::removeUser(int clientFd)
         this->operators.insert(std::make_pair(this->users.begin()->first, this->users.begin()->second));
         this->users.erase(this->users.begin());
     }
+    this->memberCount--;
 }
 
 void Channel::sendToAll(std::string sender, std::string message, bool all)
@@ -122,6 +137,11 @@ void Channel::listUsers()
     std::cout << "\tUsers:" << std::endl;
     for (it = this->users.begin(); it != this->users.end(); it++)
         std::cout << "\t\t" << it->second->getNickName() << std::endl;
+}
+
+void Channel::sendNames(int clientFd)
+{
+    
 }
 
 

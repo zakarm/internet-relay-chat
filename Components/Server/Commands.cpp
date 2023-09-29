@@ -28,7 +28,7 @@ void Server::cmdPass(int clientFd, std::string data)
         this->users.find(clientFd)->second.setSetPass(true);
 }
 
-void   port_check(const char *port)
+void port_check(const char *port)
 {
     if (!port || *port == '\0')
         throw(std::runtime_error("Error: port range not valid"));
@@ -36,23 +36,26 @@ void   port_check(const char *port)
     long conv = std::strtol(port, &endp, 10);
     if (*endp != '\0' || conv <= 0 || conv > 65535)
         throw(std::runtime_error("Error: port range not valid"));
-    //check correct port range
+    // check correct port range
 }
 
 void Server::cmdNick(int clientFd, std::string data)
 {
     if (!this->users[clientFd].getSetPass())
-        {sendErrRep(451, clientFd, "", "", ""); return ;}
+    {
+        sendErrRep(451, clientFd, "", "", "");
+        return;
+    }
     std::stringstream ss(data);
     std::string nickName;
     ss >> nickName;
-    if(nickName.empty() || nickName == ":")
+    if (nickName.empty() || nickName == ":")
         sendErrRep(431, clientFd, "NICK", "", "");
     else if (!validNick(nickName))
         sendErrRep(432, clientFd, "NICK", "", "");
     else if (!checkDuplicateNick(nickName))
         sendErrRep(433, clientFd, "NICK", "", "");
-    else 
+    else
     {
         if (this->users.find(clientFd)->second.getNickName().empty())
         {
@@ -70,14 +73,14 @@ void Server::cmdNick(int clientFd, std::string data)
     }
 }
 
-bool Server::validNick(const std::string& data)
+bool Server::validNick(const std::string &data)
 {
     std::string::const_iterator it;
-        if(!isalpha(data[0]))
+    if (!isalpha(data[0]))
         return false;
-        for (it = data.begin(); it != data.end(); ++it)
-            if (!isalnum(*it) && *it != '_' && *it != '[' && *it != ']' && *it != '\\' )
-                return false;
+    for (it = data.begin(); it != data.end(); ++it)
+        if (!isalnum(*it) && *it != '_' && *it != '[' && *it != ']' && *it != '\\')
+            return false;
     return true;
 }
 
@@ -110,10 +113,8 @@ void Server::cmdTopic(int clientFd, std::string data)
                 sendErrRep(331, clientFd, "", this->users.find(clientFd)->second.getNickName(), channelName);
             else
             {
-                sendErrRep(332, clientFd, "", this->users.find(clientFd)->second.getNickName(), channelName + " " + \
-                    this->channels.find(channelName)->second.getTopic());
-                sendErrRep(333, clientFd, "", this->users.find(clientFd)->second.getNickName(), channelName + " " + \
-                    this->users.find(clientFd)->second.getNickName() + " " + Utils::getDate());
+                sendErrRep(332, clientFd, "", this->users.find(clientFd)->second.getNickName(), channelName + " " + this->channels.find(channelName)->second.getTopic());
+                sendErrRep(333, clientFd, "", this->users.find(clientFd)->second.getNickName(), channelName + " " + this->users.find(clientFd)->second.getNickName() + " " + Utils::getDate());
             }
         }
         else
@@ -121,7 +122,7 @@ void Server::cmdTopic(int clientFd, std::string data)
             if (this->channels.find(channelName)->second.getMode() == 2 && !this->channels.find(channelName)->second.isOperator(clientFd))
             {
                 sendErrRep(482, clientFd, "TOPIC", this->users.find(clientFd)->second.getNickName(), channelName);
-                return ;
+                return;
             }
             if (newTopic[0] == ':' && newTopic.size() == 1)
                 this->channels.find(channelName)->second.setTopic("");
@@ -134,14 +135,14 @@ void Server::cmdTopic(int clientFd, std::string data)
             for (it = this->channels[channelName].getUsers().begin(); it != this->channels[channelName].getUsers().end(); it++)
             {
                 if (it->second->getIsConnected())
-                    sendErrRep(332, it->second->getClientFd(), "", clientNick,\
-                        channelName + " " + this->channels.find(channelName)->second.getTopic());
+                    sendErrRep(332, it->second->getClientFd(), "", clientNick,
+                               channelName + " " + this->channels.find(channelName)->second.getTopic());
             }
             for (it = this->channels[channelName].getOperators().begin(); it != this->channels[channelName].getOperators().end(); it++)
             {
                 if (it->second->getIsConnected())
-                    sendErrRep(332, it->second->getClientFd(), "", clientNick,\
-                            channelName + " " + this->channels.find(channelName)->second.getTopic());
+                    sendErrRep(332, it->second->getClientFd(), "", clientNick,
+                               channelName + " " + this->channels.find(channelName)->second.getTopic());
             }
         }
     }
@@ -153,7 +154,7 @@ void Server::cmdInvite(int clientFd, std::string data)
         sendErrRep(461, clientFd, "INVITE", "", "");
     else if (!this->users.find(clientFd)->second.getIsConnected())
         sendErrRep(451, clientFd, "INVITE", "", "");
-    else 
+    else
     {
         std::stringstream ss(data);
         std::string nickname, channelName;
@@ -167,8 +168,8 @@ void Server::cmdInvite(int clientFd, std::string data)
         else if (!this->users.find(clientFd)->second.isInChannel(channelName))
             sendErrRep(442, clientFd, "INVITE", this->users.find(clientFd)->second.getNickName(), channelName);
         else if (this->channels.find(channelName)->second.getMode() == 1 && !this->channels.find(channelName)->second.isOperator(clientFd))
-                sendErrRep(482, clientFd, "INVITE", this->users.find(clientFd)->second.getNickName(), channelName);
-        else 
+            sendErrRep(482, clientFd, "INVITE", this->users.find(clientFd)->second.getNickName(), channelName);
+        else
         {
             int target = getUserFdByNick(nickname);
             if (target != -1)
@@ -181,7 +182,7 @@ void Server::cmdInvite(int clientFd, std::string data)
                     sendErrRep(341, clientFd, "INVITE", this->users.find(clientFd)->second.getNickName(), channelName);
                 }
             }
-        }   
+        }
     }
 }
 
@@ -206,8 +207,8 @@ void Server::cmdKick(int clientFd, std::string data)
         else if (!this->users.find(clientFd)->second.isInChannel(channelName))
             sendErrRep(442, clientFd, "KICK", this->users.find(clientFd)->second.getNickName(), channelName);
         else if (!this->channels.find(channelName)->second.isOperator(clientFd))
-                sendErrRep(482, clientFd, "KICK", this->users.find(clientFd)->second.getNickName(), channelName);
-        else 
+            sendErrRep(482, clientFd, "KICK", this->users.find(clientFd)->second.getNickName(), channelName);
+        else
         {
             std::stringstream nicknames(nickName);
             while (std::getline(nicknames, nickName, ','))
@@ -230,7 +231,6 @@ void Server::cmdKick(int clientFd, std::string data)
                 }
                 else
                     sendErrRep(441, clientFd, "KICK", this->users.find(clientFd)->second.getNickName(), channelName);
-
             }
         }
     }
@@ -263,10 +263,12 @@ void Server::runCommand(int clientFd, std::string command)
             cmdKick(clientFd, cmdParam);
         else if (Utils::stolower(cmdName) == "privmsg")
             cmdPrivMsg(clientFd, cmdParam);
+        else if (Utils::stolower(cmdName) == "join")
+            cmdJoin(clientFd, cmdParam);
         else if (Utils::stolower(cmdName) == "ping")
-            return ;
+            return;
         else if (Utils::stolower(cmdName) == "pong")
-            return ;
+            return;
         else
             sendErrRep(421, clientFd, command, "", "");
     }
@@ -276,32 +278,54 @@ void Server::sendErrRep(int code, int clientFd, std::string command, std::string
 {
     std::stringstream ss;
     User u = this->users.find(clientFd)->second;
-    if (code == 1)          ss << ":irc.leet.com 001 " << u.getNickName() << " " << this->errRep.find(1)->second    << " " << u.getNickName() << "\r\n";
-    else if (code == 2)     ss << ":irc.leet.com 002 " << u.getNickName() << " " << this->errRep.find(2)->second    << " v1" << "\r\n";
-    else if (code == 3)     ss << ":irc.leet.com 003 " << u.getNickName() << " " << this->errRep.find(3)->second    << " " << Utils::getDate() << "\r\n";
-    else if (code == 4)     ss << ":irc.leet.com 004 " << u.getNickName() << " " << this->errRep.find(4)->second    << "\r\n";
-    else if (code == 5)     ss << ":irc.leet.com 005 " << u.getNickName() << " " << this->errRep.find(5)->second    << "\r\n";
-    else if (code == 431)   ss << ":irc.leet.com 431 " << command         << " " << this->errRep.find(431)->second  << "\r\n";
-    else if (code == 421)   ss << ":irc.leet.com 421 " << command         << " " << this->errRep.find(421)->second  << "\r\n";
-    else if (code == 331)   ss << ":irc.leet.com 331 " << s1              << " " << s2 << " " << this->errRep.find(331)->second << "\r\n";
-    else if (code == 442)   ss << ":irc.leet.com 442 " << command         << " " << s1 << " " << s2 << this->errRep.find(442)->second << "\r\n";
-    else if (code == 441)   ss << ":irc.leet.com 442 " << command         << " " << s1 << " " << s2 << this->errRep.find(441)->second << "\r\n";
-    else if (code == 403)   ss << ":irc.leet.com 403 " << command         << " " << s1 << " " << s2 << this->errRep.find(403)->second << "\r\n";
-    else if (code == 482)   ss << ":irc.leet.com 482 " << command         << " " << s1 << " " << s2 << this->errRep.find(482)->second << "\r\n";
-    else if (code == 443)   ss << ":irc.leet.com 443 " << command         << " " << s1 << " " << s2 << this->errRep.find(443)->second << "\r\n";
-    else if (code == 433)   ss << ":irc.leet.com 433 " << command         << " " << u.getNickName() << " " << this->errRep.find(433)->second << "\r\n";
-    else if (code == 432)   ss << ":irc.leet.com 432 " << command         << " " << u.getNickName() << " " << this->errRep.find(432)->second << "\r\n";
-    else if (code == 451)   ss << ":irc.leet.com 451 " << command         <<        this->errRep.find(451)->second << "\r\n";
-    else if (code == 461)   ss << ":irc.leet.com 461 " << command         <<        this->errRep.find(461)->second << "\r\n";
-    else if (code == 462)   ss << ":irc.leet.com 462 " << command         <<        this->errRep.find(462)->second << "\r\n";
-    else if (code == 464)   ss << ":irc.leet.com 464 " << command         <<        this->errRep.find(464)->second << "\r\n";
-    else if (code == 341)   ss << ":irc.leet.com 341 " << command         << " " << s1 << " " << s2  << "\r\n";
-    else if (code == 332)   ss << ":irc.leet.com 332 " << s1              << " " << s2 << "\r\n";
-    else if (code == 333)   ss << ":irc.leet.com 333 " << s1              << " " << s2 << "\r\n";
+    if (code == 1)
+        ss << ":irc.leet.com 001 " << u.getNickName() << " " << this->errRep.find(1)->second << " " << u.getNickName() << "\r\n";
+    else if (code == 2)
+        ss << ":irc.leet.com 002 " << u.getNickName() << " " << this->errRep.find(2)->second << " v1"
+           << "\r\n";
+    else if (code == 3)
+        ss << ":irc.leet.com 003 " << u.getNickName() << " " << this->errRep.find(3)->second << " " << Utils::getDate() << "\r\n";
+    else if (code == 4)
+        ss << ":irc.leet.com 004 " << u.getNickName() << " " << this->errRep.find(4)->second << "\r\n";
+    else if (code == 5)
+        ss << ":irc.leet.com 005 " << u.getNickName() << " " << this->errRep.find(5)->second << "\r\n";
+    else if (code == 431)
+        ss << ":irc.leet.com 431 " << command << " " << this->errRep.find(431)->second << "\r\n";
+    else if (code == 421)
+        ss << ":irc.leet.com 421 " << command << " " << this->errRep.find(421)->second << "\r\n";
+    else if (code == 331)
+        ss << ":irc.leet.com 331 " << s1 << " " << s2 << " " << this->errRep.find(331)->second << "\r\n";
+    else if (code == 442)
+        ss << ":irc.leet.com 442 " << command << " " << s1 << " " << s2 << this->errRep.find(442)->second << "\r\n";
+    else if (code == 441)
+        ss << ":irc.leet.com 442 " << command << " " << s1 << " " << s2 << this->errRep.find(441)->second << "\r\n";
+    else if (code == 403)
+        ss << ":irc.leet.com 403 " << command << " " << s1 << " " << s2 << this->errRep.find(403)->second << "\r\n";
+    else if (code == 482)
+        ss << ":irc.leet.com 482 " << command << " " << s1 << " " << s2 << this->errRep.find(482)->second << "\r\n";
+    else if (code == 443)
+        ss << ":irc.leet.com 443 " << command << " " << s1 << " " << s2 << this->errRep.find(443)->second << "\r\n";
+    else if (code == 433)
+        ss << ":irc.leet.com 433 " << command << " " << u.getNickName() << " " << this->errRep.find(433)->second << "\r\n";
+    else if (code == 432)
+        ss << ":irc.leet.com 432 " << command << " " << u.getNickName() << " " << this->errRep.find(432)->second << "\r\n";
+    else if (code == 451)
+        ss << ":irc.leet.com 451 " << command << this->errRep.find(451)->second << "\r\n";
+    else if (code == 461)
+        ss << ":irc.leet.com 461 " << command << this->errRep.find(461)->second << "\r\n";
+    else if (code == 462)
+        ss << ":irc.leet.com 462 " << command << this->errRep.find(462)->second << "\r\n";
+    else if (code == 464)
+        ss << ":irc.leet.com 464 " << command << this->errRep.find(464)->second << "\r\n";
+    else if (code == 341)
+        ss << ":irc.leet.com 341 " << command << " " << s1 << " " << s2 << "\r\n";
+    else if (code == 332)
+        ss << ":irc.leet.com 332 " << s1 << " " << s2 << "\r\n";
+    else if (code == 333)
+        ss << ":irc.leet.com 333 " << s1 << " " << s2 << "\r\n";
     send(clientFd, ss.str().c_str(), ss.str().size(), 0);
     ss.clear();
 }
-
 
 void Server::cmdPrivMsg(int clientFd, std::string data)
 {
@@ -349,7 +373,7 @@ void Server::cmdPrivMsg(int clientFd, std::string data)
         if (target[0] == '#' || target[1] == '#')
         {
             int to;
-            to = target[0] == '%' ?  1 : 0;
+            to = target[0] == '%' ? 1 : 0;
             target = target.substr(1 + to, target.length() - 1);
             if (this->channels.find(target) != this->channels.end())
                 this->channels[target].sendToAll(this->users[clientFd].getNickName(), message, !to);
@@ -362,14 +386,61 @@ void Server::cmdPrivMsg(int clientFd, std::string data)
             }
         }
         else
-        this->addToResponse(this->getUserFdByNick(target), ":" + this->users[clientFd].getNickName() + " PRIVMSG " + target + " :" + message + "\r\n");
+            this->addToResponse(this->getUserFdByNick(target), ":" + this->users[clientFd].getNickName() + " PRIVMSG " + target + " :" + message + "\r\n");
     }
     std::cout << "message: " << message << std::endl;
 }
 
+void Server::cmdJoin(int clientFd, std::string data)
+{
+    // if (!this->users.find(clientFd)->second.getIsConnected())
+    // {
+    //     sendErrRep(451, clientFd, "JOIN", "", "");
+    //     return;
+    // }
+    // if (data.empty())
+    // {
+    //     sendErrRep(461, clientFd, "JOIN", "", "");
+    //     return;
+    // }
 
-///
-// void Server::cmdJoin(int clientfd, std::string data)
-// {
-//     return;
-// }
+    std::stringstream ss(data);
+    std::string channels, passwords, channel;
+    ss >> channels;
+    ss >> std::ws;
+    std::getline(ss, passwords);
+
+    this->channels["general"].addUser(&(this->users.find(clientFd)->second));
+    this->channels["general"].sendNames(clientFd);
+
+    // std::stringstream ss2(channels);
+    // while (std::getline(ss2, channel, ','))
+    // {
+    //     if (channel.empty())
+    //     {
+    //         sendErrRep(461, clientFd, "JOIN", "", "");
+    //         continue;
+    //     }
+    //     if (channel[0] != '#')
+    //     {
+    //         std::stringstream err;
+    //         err << ":irc.leet.com 476 JOIN " << channels << " " << this->errRep.find(476)->second << "\r\n";
+    //         send(clientFd, err.str().c_str(), err.str().size(), 0);
+    //         err.clear();
+    //         continue;
+    //     }
+    //     if (this->channels.find(channel) == this->channels.end())
+    //     {
+    //         this->channels.insert(std::make_pair(channel, Channel(channel)));
+    //         this->channels[channel].addUser(&(this->users.find(clientFd)->second));
+    //     }
+    //     else
+    //     {
+    //         if (this->channels[channel].getMode() & Channel::INVITE_ONLY)
+    //         {
+
+    //         }
+    //     }
+
+    // }
+}
