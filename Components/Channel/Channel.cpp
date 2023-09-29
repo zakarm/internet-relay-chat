@@ -74,6 +74,18 @@ void Channel::addUser(User *user)
     this->memberCount++;
 }
 
+bool Channel::isInvited(std::string nickName)
+{
+    return std::find(this->invited.begin(), this->invited.end(), nickName) != this->invited.end();
+}
+
+void Channel::addInvited(std::string nickName)
+{
+    if (isInvited(nickName))
+        return;
+    this->invited.push_back(nickName);
+}
+
 void Channel::addOperator(User *user)
 {
     if (this->operators.find(user->getClientFd()) != this->operators.end())
@@ -141,7 +153,7 @@ void Channel::listUsers()
 
 void Channel::sendNames(int clientFd)
 {
-    
+    (void)clientFd;
 }
 
 
