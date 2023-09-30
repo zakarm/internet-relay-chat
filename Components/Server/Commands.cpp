@@ -7,7 +7,7 @@
 void Server::authenticate(int clientFd)
 {
     User u = this->users.find(clientFd)->second;
-    if (!u.getNickName().empty() && u.getSetPass())
+    if (!u.getUserName().empty() && !u.getNickName().empty() && u.getSetPass())
     {
         for (int i = 1; i <= 5; i++)
             sendErrRep(i, clientFd, "", "", "");
@@ -34,9 +34,8 @@ void port_check(const char *port)
         throw(std::runtime_error("Error: port range not valid"));
     char *endp;
     long conv = std::strtol(port, &endp, 10);
-    if (*endp != '\0' || conv <= 0 || conv > 65535)
+    if (*endp != '\0' || conv <= 1024 || conv > 65535)
         throw(std::runtime_error("Error: port range not valid"));
-    // check correct port range
 }
 
 void Server::cmdNick(int clientFd, std::string data)
@@ -122,6 +121,11 @@ int Server::userCheck(std::string data)
 
 void Server::cmdUser(int clientFd, std::string data)
 {
+    if (!this->users[clientFd].getSetPass())
+    {
+        sendErrRep(451, clientFd, "", "", "");
+        return;
+    }
     int err = userCheck(data);
     if (err == 461 || err == 462)
     {
@@ -140,7 +144,7 @@ void Server::cmdUser(int clientFd, std::string data)
         realname = realname.substr(1, realname.length() - 1);
     this->users[clientFd].setRealName(realname);
     this->users[clientFd].setUserName(username);
-    //authenticate(clientFd);
+    authenticate(clientFd);
 }
 
 void Server::cmdTopic(int clientFd, std::string data)
