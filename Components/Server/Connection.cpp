@@ -112,6 +112,7 @@ void Server::acceptAndDecline()
               << " has joined the server." << std::endl;
     this->pfds.push_back((struct pollfd){.fd = client_fd, .events = POLLIN | POLLOUT});
     this->users.insert(std::make_pair(client_fd, User(client_fd)));
+    this->users[client_fd].setHostName(inet_ntoa(clientAddr.sin_addr));
     this->users[client_fd].joinChannel(&this->channels["general"]);
 }
 
