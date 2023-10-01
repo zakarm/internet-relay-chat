@@ -61,16 +61,14 @@ class Server{
         void cmdInvite(int clientFd, std::string data);
         void cmdKick(int clientFd, std::string data);
         void cmdJoin(int clientFd, std::string data);
+        void cmdUser(int clientFd, std::string data);
+        void cmdBot(int clientFd, std::string data);
         void authenticate(int clientFd);
         void runCommand(int clientFd, std::string command);
-        void cmdUser(int clientFd, std::string data);
         int  userCheck(std::string data);
         bool check_user(const std::string& username, const std::string& mode, const std::string& asterisk);
         int  countWords(std::string data);
         bool checkDuplicateUser(std::string username);
-        // void whomai(int clientFd);
-        /////
-
         void cmdPrivMsg(int clientFd, std::string data);
         void addToResponse(int clientFd, std::string response);
 
