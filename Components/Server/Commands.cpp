@@ -344,6 +344,24 @@ void Server::cmdPrivMsg(int clientFd, std::string data)
     }
 }
 
+void Server::cmdBot(int clientFd, std::string command)
+{
+    if (command.empty())
+    {
+        std::stringstream ss;
+        ss << ":BOT NOTICE BOT : state, time\r\n";
+        send(clientFd, ss.str().c_str(), ss.str().size(), 0);
+    }
+    // else if (command = "state")
+    // {
+
+    // }
+    // else if (command = "time")
+    // {
+        
+    // }
+}
+
 void Server::runCommand(int clientFd, std::string command)
 {
     if (!command.empty())
@@ -373,6 +391,8 @@ void Server::runCommand(int clientFd, std::string command)
             cmdPrivMsg(clientFd, cmdParam);
         else if (Utils::stolower(cmdName) == "join")
             cmdJoin(clientFd, cmdParam);
+        else if (Utils::stolower(cmdName) == "bot")
+            cmdBot(clientFd, cmdParam);
         else if (Utils::stolower(cmdName) == "ping")
             return;
         else if (Utils::stolower(cmdName) == "pong")
@@ -386,11 +406,11 @@ void Server::sendErrRep(int code, int clientFd, std::string command, std::string
 {
     std::stringstream ss;
     User u = this->users.find(clientFd)->second;
-    if (code == 1)          ss << ":irc.leet.com 001 " << u.getNickName() << this->errRep.find(1)->second << " " << u.getNickName() << "\r\n";
-    else if (code == 2)     ss << ":irc.leet.com 002 " << u.getNickName() << this->errRep.find(2)->second << " v1" << "\r\n";
-    else if (code == 3)     ss << ":irc.leet.com 003 " << u.getNickName() << this->errRep.find(3)->second << " " << Utils::getDate() << "\r\n";
-    else if (code == 4)     ss << ":irc.leet.com 004 " << u.getNickName() << this->errRep.find(4)->second << "\r\n";
-    else if (code == 5)     ss << ":irc.leet.com 005 " << u.getNickName() << this->errRep.find(5)->second << "\r\n";
+    if (code == 1)          ss << ":irc.leet.com 001 " << u.getNickName() << " " << this->errRep.find(1)->second << " " << u.getNickName() << "\r\n";
+    else if (code == 2)     ss << ":irc.leet.com 002 " << u.getNickName() << " " << this->errRep.find(2)->second << " v1" << "\r\n";
+    else if (code == 3)     ss << ":irc.leet.com 003 " << u.getNickName() << " " << this->errRep.find(3)->second << " " << Utils::getDate() << "\r\n";
+    else if (code == 4)     ss << ":irc.leet.com 004 " << u.getNickName() << " " << this->errRep.find(4)->second << "\r\n";
+    else if (code == 5)     ss << ":irc.leet.com 005 " << u.getNickName() << " " << this->errRep.find(5)->second << "\r\n";
     else if (code == 431)   ss << ":irc.leet.com 431 " << command         << this->errRep.find(431)->second << "\r\n";
     else if (code == 421)   ss << ":irc.leet.com 421 " << command         << this->errRep.find(421)->second << "\r\n";
     else if (code == 331)   ss << ":irc.leet.com 331 " << s1              << " " << s2 << this->errRep.find(331)->second << "\r\n";
