@@ -149,10 +149,10 @@ void Server::cmdUser(int clientFd, std::string data)
 
 void Server::cmdTopic(int clientFd, std::string data)
 {
-    if (data.empty())
-        sendErrRep(461, clientFd, "TOPIC", "", "");
-    else if (!this->users.find(clientFd)->second.getIsConnected())
+    if (!this->users.find(clientFd)->second.getIsConnected())
         sendErrRep(451, clientFd, "TOPIC", "", "");
+    else if (data.empty())
+        sendErrRep(461, clientFd, "TOPIC", "", "");
     else
     {
         std::stringstream ss(data);
@@ -207,10 +207,10 @@ void Server::cmdTopic(int clientFd, std::string data)
 
 void Server::cmdInvite(int clientFd, std::string data)
 {
-    if (data.empty())
-        sendErrRep(461, clientFd, "INVITE", "", "");
-    else if (!this->users.find(clientFd)->second.getIsConnected())
+    if (!this->users.find(clientFd)->second.getIsConnected())
         sendErrRep(451, clientFd, "INVITE", "", "");
+    else if (data.empty())
+        sendErrRep(461, clientFd, "INVITE", "", "");
     else
     {
         std::stringstream ss(data);
@@ -245,10 +245,10 @@ void Server::cmdInvite(int clientFd, std::string data)
 
 void Server::cmdKick(int clientFd, std::string data)
 {
-    if (data.empty())
-        sendErrRep(461, clientFd, "KICK", "", "");
-    else if (!this->users.find(clientFd)->second.getIsConnected())
+    if (!this->users.find(clientFd)->second.getIsConnected())
         sendErrRep(451, clientFd, "KICK", "", "");
+    else if (data.empty())
+        sendErrRep(461, clientFd, "KICK", "", "");
     else
     {
         std::stringstream ss(data);
@@ -346,20 +346,26 @@ void Server::cmdPrivMsg(int clientFd, std::string data)
 
 void Server::cmdBot(int clientFd, std::string command)
 {
-    if (command.empty())
+    if (!this->users.find(clientFd)->second.getIsConnected())
+        sendErrRep(451, clientFd, "BOT", "", "");
+    else if (command.empty())
     {
         std::stringstream ss;
         ss << ":BOT NOTICE BOT : state, time\r\n";
         send(clientFd, ss.str().c_str(), ss.str().size(), 0);
     }
-    // else if (command = "state")
-    // {
-
-    // }
-    // else if (command = "time")
-    // {
-        
-    // }
+    else if (command == "time")
+    {
+        std::stringstream ss;
+        ss << ":BOT NOTICE time :" << Utils::getDate() << std::endl;
+        send(clientFd, ss.str().c_str(), ss.str().size(), 0);
+    }
+    else if (command == "state")
+    {
+        std::stringstream ss;
+        ss << ":BOT NOTICE state : users on the server = " << this->users.size() << ", channels on the server = " << this->channels.size() << " \r\n";
+        send(clientFd, ss.str().c_str(), ss.str().size(), 0);
+    }
 }
 
 void Server::runCommand(int clientFd, std::string command)
