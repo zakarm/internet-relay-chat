@@ -114,6 +114,10 @@ void Server::acceptAndDecline()
     this->users.insert(std::make_pair(client_fd, User(client_fd)));
     this->users[client_fd].setHostName(inet_ntoa(clientAddr.sin_addr));
     this->users[client_fd].joinChannel(&this->channels["general"]);
+    if (client_fd == 4)
+    {
+        this->users[client_fd].joinChannel(&this->channels["data"]);
+    }
 }
 
 void Server::multipleClients()
