@@ -6,12 +6,15 @@
 
 void Server::authenticate(int clientFd)
 {
-    User u = this->users.find(clientFd)->second;
-    if (!u.getUserName().empty() && !u.getNickName().empty() && u.getSetPass())
+    if (!this->users.find(clientFd)->second.getIsConnected())
     {
-        for (int i = 1; i <= 5; i++)
-            sendErrRep(i, clientFd, "", "", "");
-        this->users.find(clientFd)->second.setIsConected(true);
+        User u = this->users.find(clientFd)->second;
+        if (!u.getUserName().empty() && !u.getNickName().empty() && u.getSetPass())
+        {
+            for (int i = 1; i <= 5; i++)
+                sendErrRep(i, clientFd, "", "", "");
+            this->users.find(clientFd)->second.setIsConected(true);
+        }
     }
 }
 
@@ -181,7 +184,7 @@ void Server::cmdTopic(int clientFd, std::string data)
                 sendErrRep(482, clientFd, "TOPIC", this->users.find(clientFd)->second.getNickName(), channelName);
                 return;
             }
-            if (newTopic[0] == ':' && newTopic.size() == 1)
+            if (!newTopic.empty() && newTopic[0] == ':' && newTopic.size() == 1)
                 this->channels.find(channelName)->second.setTopic("");
             else if (newTopic[0] == ':')
                 this->channels.find(channelName)->second.setTopic(newTopic.substr(1, newTopic.size()));
@@ -232,11 +235,11 @@ void Server::cmdInvite(int clientFd, std::string data)
             if (target != -1)
             {
                 if (this->users.find(target)->second.isInChannel(channelName))
-                    sendErrRep(443, clientFd, "INVITE", this->users.find(clientFd)->second.getNickName(), channelName);
+                    sendErrRep(443, clientFd, "INVITE", this->users.find(clientFd)->second.getNickName() + " " + nickname, channelName);
                 else
                 {
                     this->channels.find(channelName)->second.addInvited(nickname);
-                    sendErrRep(341, clientFd, "INVITE", this->users.find(clientFd)->second.getNickName(), channelName);
+                    sendErrRep(341, clientFd, "INVITE", this->users.find(clientFd)->second.getNickName() + " " + nickname, channelName);
                 }
             }
         }
@@ -279,12 +282,11 @@ void Server::cmdKick(int clientFd, std::string data)
                             sendErrRep(441, clientFd, "KICK", this->users.find(clientFd)->second.getNickName() + " " + nickName, channelName);
                         else
                         {
-                            if (comment[0] == ':')
-                            {
-                                std::stringstream rep;
-                                rep << ":" << this->users.find(clientFd)->second.getNickName() << " KICK " << channelName << " " << nickName;
-                                send(target, rep.str().c_str(), rep.str().size(), 0);
-                            }
+                            if (!comment.empty() && comment[0] == ':')
+                                comment = comment.substr(0, comment.length());
+                            std::stringstream rep;
+                            rep << ":" << this->users.find(clientFd)->second.getNickName() << " KICK " << channelName << " " << nickName << " " << comment << "\r\n";
+                            send(target, rep.str().c_str(), rep.str().size(), 0);
                             this->users.find(target)->second.leaveChannel(&(this->channels.find(channelName)->second));
                         }
                     }
