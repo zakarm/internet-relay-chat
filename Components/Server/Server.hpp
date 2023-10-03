@@ -62,6 +62,7 @@ class Server{
         void cmdKick(int clientFd, std::string data);
         void cmdJoin(int clientFd, std::string data);
         void cmdUser(int clientFd, std::string data);
+        void cmdLeave(int clientFd, std::string data);
         void cmdBot(int clientFd, std::string data);
         void authenticate(int clientFd);
         void runCommand(int clientFd, std::string command);

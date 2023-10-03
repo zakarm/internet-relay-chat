@@ -4,7 +4,6 @@
 #include "../User/User.hpp"
 
 class User; 
-
 class Channel{
     private :
         std::string name;
@@ -37,6 +36,9 @@ class Channel{
         const std::map<int, User*>& getUsers() const;
         const std::map<int, User*>& getOperators() const;
         int getLimit() const;
+        void setLimit(int limit);
+        int getMemberCount() const;
+        void setMemberCount(int memberCount);
         
         int getMode() const;
         void setMode(int mode);
@@ -50,15 +52,15 @@ class Channel{
         void addOperator(User *user);
         void removeUser(int clientFd);
         void sendToAll(std::string sender, std::string message, bool all = true);
-        void sendNames(int clientFd);
+        void broadcast(User *sender, std::string message, std::queue<std::pair<int, std::string> > *queue,  bool all = true);
+        void sendNames(int clientFd, std::string nickName);
         enum MODES{
             NO_MODE = 0,
             INVITE_ONLY = 1,
             TOPIC_PROTECTED = 2,
-            SECRET = 4,
-            MODERATED = 8,
-            LIMIT = 16,
-            KEY = 32,
+            MODERATED = 4,
+            LIMIT = 8,
+            KEY = 16,
         };
         void listUsers();
 };

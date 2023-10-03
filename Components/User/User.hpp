@@ -44,7 +44,7 @@ class User
         void setSetPass(bool setPass);
         bool getAfk() const;
         void setAfk(bool afk);
-
+        void addChannel(Channel* channel);
 
 
         std::string getInfo() const;

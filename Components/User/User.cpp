@@ -100,6 +100,13 @@ bool User::isInChannel(std::string channelName)
     return this->channels.find(channelName) != this->channels.end();
 }
 
+void User::addChannel(Channel* channel)
+{
+    if(this->isInChannel(channel->getName()))
+        return; // send already in channel.
+    this->channels.insert(std::make_pair(channel->getName(), channel));
+}
+
 
 User::~User()
 {
