@@ -1,4 +1,5 @@
 #include "Channel.hpp"
+#include "../Server/Server.hpp"
 
 /**************************************************************/
 /*                        Constructors                        */
@@ -128,6 +129,9 @@ void Channel::removeUser(int clientFd)
     if (!this->operators.size() && this->users.size())
     {
         this->operators.insert(std::make_pair(this->users.begin()->first, this->users.begin()->second));
+        std::string message;
+        message = ":irc.leet.com MODE " + this->name + " +o " + this->users.begin()->second->getNickName() + "\r\n";
+        send(this->operators.begin()->first, message.c_str(), message.size(), 0);
         this->users.erase(this->users.begin());
     }
     this->memberCount--;
