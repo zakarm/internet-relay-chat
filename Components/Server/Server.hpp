@@ -72,9 +72,6 @@ class Server{
         bool checkDuplicateUser(std::string username);
         void cmdPrivMsg(int clientFd, std::string data);
         void addToResponse(int clientFd, std::string response);
-
-
-
 };
 void   port_check(const char *port);
 #endif
