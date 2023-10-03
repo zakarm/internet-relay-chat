@@ -87,14 +87,11 @@ void Server::requests(int indexClient)
             runCommand(this->pfds[indexClient].fd, joinBuffers(indexClient, buffer));
         std::cout << "buffer: "<< buffer << std::endl;
     }
-    else if (this->pfds[indexClient].revents & POLLOUT)
+    if (!this->responses.empty())
     {
-        if (!this->responses.empty())
-        {
-            std::pair<int, std::string> response = this->responses.front();
-            this->responses.pop();
-            send(response.first, response.second.c_str(), response.second.length(), 0);
-        }
+        std::pair<int, std::string> response = this->responses.front();
+        this->responses.pop();
+        send(response.first, response.second.c_str(), response.second.length(), 0);
     }
 }
 
@@ -110,14 +107,9 @@ void Server::acceptAndDecline()
     }
     std::cout << Utils::getTime() << " " << inet_ntoa(clientAddr.sin_addr)
               << " has joined the server." << std::endl;
-    this->pfds.push_back((struct pollfd){.fd = client_fd, .events = POLLIN | POLLOUT});
+    this->pfds.push_back((struct pollfd){.fd = client_fd, .events = POLLIN});
     this->users.insert(std::make_pair(client_fd, User(client_fd)));
     this->users[client_fd].setHostName(inet_ntoa(clientAddr.sin_addr));
-    this->users[client_fd].joinChannel(&this->channels["general"]);
-    if (client_fd == 4)
-    {
-        this->users[client_fd].joinChannel(&this->channels["data"]);
-    }
 }
 
 void Server::multipleClients()
