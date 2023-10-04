@@ -48,7 +48,7 @@ Channel::Channel(const Channel &ch)
         this->limit = ch.limit;
         this->memberCount = ch.memberCount;
         this->mode = ch.mode;
-        }
+    }
 }
 
 /**************************************************************/
@@ -111,12 +111,18 @@ void Channel::addInvited(std::string nickName)
     this->invited.push_back(nickName);
 }
 
+void Channel::removeInvited(std::string nickName)
+{
+    if (!isInvited(nickName))
+        return;
+    this->invited.erase(std::find(this->invited.begin(), this->invited.end(), nickName));
+}
+
 void Channel::addOperator(User *user)
 {
     if (this->operators.find(user->getClientFd()) != this->operators.end())
         return;
     this->operators.insert(std::make_pair(user->getClientFd(), user));
-    this->memberCount++;
 }
 
 void Channel::removeUser(int clientFd)

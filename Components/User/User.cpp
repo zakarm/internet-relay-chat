@@ -93,6 +93,8 @@ void User::leaveChannel(Channel* channel)
         return; // send not in channel.
     this->channels.erase(channel->getName());
     channel->removeUser(this->clientFd);
+    std::string message = ":" + this->nickName + "!~" + this->userName + "@" + this->hostName + " PART " + channel->getName() + "\r\n";
+    send(this->clientFd, message.c_str(), message.size(), 0);
 }
 
 bool User::isInChannel(std::string channelName)

@@ -500,18 +500,14 @@ void Server::cmdLeave(int clientFd, std::string data)
                 continue;
             }
             this->users.find(clientFd)->second.leaveChannel(&(this->channels.find(channel)->second));
-            if (message.empty())
-                message = this->users.find(clientFd)->second.getNickName() + " has left " + channel;
-            else if (message[0] == ':')
-                message = message.substr(1, message.length() - 1);
-            else
-                message = ":" + this->users.find(clientFd)->second.getNickName() + " " + message;
+
             this->channels[channel].broadcast(&(this->users.find(clientFd)->second), "PART " + channel + " " + message, &(this->responses), true);
+
+            std::cout << "channel size: " << this->channels[channel].getMemberCount() << std::endl;
+            std::cout << this->users.find(clientFd)->second.getNickName() << " left " << channel << std::endl;
+            if (this->channels.find(channel) != this->channels.end() && this->channels[channel].getMemberCount() == 0)
+                {this->channels.erase(channel); std::cout << "channel erased" << std::endl;}
         }
-        std::cout << this->users.find(clientFd)->second.getNickName() << " left " << channel << std::endl;
-        std::cout << "channel size: " << this->channels[channel].getMemberCount() << std::endl;
-        if (this->channels.find(channel) != this->channels.end() && this->channels[channel].getMemberCount() == 0)
-            {this->channels.erase(channel); std::cout << "channel erased" << std::endl;}
     }
 }
 
