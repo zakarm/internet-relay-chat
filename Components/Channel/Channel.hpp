@@ -48,6 +48,7 @@ class Channel{
         void unsetMode(int mode);
         void addUser(User *user);
         void addInvited(std::string nickName);
+        void removeInvited(std::string nickName);
         bool isInvited(std::string nickName);
         void addOperator(User *user);
         void removeUser(int clientFd);
