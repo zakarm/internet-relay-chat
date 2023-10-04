@@ -284,10 +284,14 @@ void Server::cmdKick(int clientFd, std::string data)
                         else
                         {
                             if (!comment.empty() && comment[0] == ':')
-                                comment = comment.substr(0, comment.length());
+                                comment = comment.substr(1, comment.length());
                             std::stringstream rep;
                             rep << ":" << this->users.find(clientFd)->second.getNickName() << " KICK " << channelName << " " << nickName << " " << comment << "\r\n";
-                            send(target, rep.str().c_str(), rep.str().size(), 0);
+                            std::map<int, User *>::const_iterator it;
+                            for (it = this->channels[channelName].getUsers().begin(); it != this->channels[channelName].getUsers().end(); it++)
+                                send(it->first, rep.str().c_str(), rep.str().size(), 0);
+                            for (it = this->channels[channelName].getOperators().begin(); it != this->channels[channelName].getOperators().end(); it++)
+                                send(it->first, rep.str().c_str(), rep.str().size(), 0);
                             this->users.find(target)->second.leaveChannel(&(this->channels.find(channelName)->second));
                         }
                     }
