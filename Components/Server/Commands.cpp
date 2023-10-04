@@ -676,6 +676,15 @@ void Server::o_mode(int clientFd, std::string cmd)
         return;}
     set_operator(channel, nick, mode);
 }
+void Server::t_mode(std::string& channel, std::string& mode)
+{
+    Channel& chan = this->channels[channel];
+    if (mode == "+t")
+        chan.setMode(Channel::TOPIC_PROTECTED);
+    else if (mode == "-t")
+        chan.unsetMode(Channel::TOPIC_PROTECTED);
+}
+// void    k
 void    Server::cmdMode(int clientFd, std::string cmd)
 {
     int c = count(cmd);
@@ -686,7 +695,7 @@ void    Server::cmdMode(int clientFd, std::string cmd)
     Channel& chan = this->channels[channel];
     if (cmd.empty())
         sendErrRep(650, clientFd, "MODE", "", "");
-    if (mode.empty())
+    else if (mode.empty())
         std::cout << "in progress" << std::endl;
     else if (channel.empty())
         sendErrRep(461, clientFd, "MODE", "", "");
@@ -706,6 +715,10 @@ void    Server::cmdMode(int clientFd, std::string cmd)
             o_mode(clientFd, cmd);
         else if (c <= 3 && (cmd.find("+l") != std::string::npos || cmd.find("-l") != std::string::npos))
             l_mode(clientFd, cmd);
+        else if (c == 2 && (cmd.find("+t") != std::string::npos || cmd.find("-t") != std::string::npos))
+            t_mode(channel, mode);
+        // else if (c == 3 && (cmd.find("+k") != std::string::npos) || cmd.find("-k") != std::string::npos)
+        //     k_mode(cmd);
         else
             sendErrRep(472, clientFd, "MODE", user.getNickName(), channel);
     }
@@ -713,7 +726,7 @@ void    Server::cmdMode(int clientFd, std::string cmd)
         sendErrRep(472, clientFd, "MODE", user.getNickName(), channel);
 }
 ///////////////////////////////////////////
-// mode k . t are next to push           //
+// mode k are next to push           //
 // error to add 696                      //
 // to add mode response for empty mode   //
 // to modify user input sytax            //
