@@ -40,8 +40,10 @@ void Server::clientDisconnected(int clientFd)
     if (this->nicks.find(this->users.at(clientFd).getNickName()) != this->nicks.end())
         this->nicks.erase(this->nicks.find(this->users.at(clientFd).getNickName()));
     if (this->users.find(clientFd) != this->users.end())
-        this->users.erase(this->users.find(clientFd));
-
+    {
+        this->users[clientFd].leaveAllChannels(&(this->responses));
+        this->users.erase(clientFd);
+    }
     for (std::vector<struct pollfd>::iterator it = this->pfds.begin(); it != this->pfds.end(); it++)
     {
         if (it->fd == clientFd)

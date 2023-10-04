@@ -339,6 +339,11 @@ void Server::cmdPrivMsg(int clientFd, std::string data)
                 int to;
                 to = target[0] == '%' ?  1 : 0;
                 target = target.substr(to, target.length());
+                if (!this->users[clientFd].isInChannel(target))
+                {
+                sendErrRep(442, clientFd, "PRIVMSG", this->users.find(clientFd)->second.getNickName(), target); 
+                continue;
+                }
                 std::cout << "target: " << target << std::endl;
                 message = target + " " + message;
                 if (this->channels.find(target) != this->channels.end())
@@ -551,7 +556,7 @@ void Server::cmdJoin(int clientFd, std::string data)
         {
             this->channels.insert(std::make_pair(channel, Channel(channel)));
             std::cout << "channel mode:" << this->channels[channel].getMode() << std::endl;
-            this->channels[channel].setMode(Channel::INVITE_ONLY);
+            // this->channels[channel].setMode(Channel::INVITE_ONLY);
         }
         else
         {   
