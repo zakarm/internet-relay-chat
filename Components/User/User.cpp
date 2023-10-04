@@ -107,17 +107,6 @@ void User::addChannel(Channel* channel)
     this->channels.insert(std::make_pair(channel->getName(), channel));
 }
 
-void User::leaveAllChannels(std::queue<std::pair<int, std::string> > *queue)
-{
-    std::map<std::string, Channel*>::iterator it = this->channels.begin();
-    while (it != this->channels.end())
-    {
-        it->second->broadcast(this, "PART " + it->second->getName(), queue);
-        it->second->removeUser(this->clientFd);
-        it++;
-    }
-    this->channels.clear();
-}
 
 User::~User()
 {

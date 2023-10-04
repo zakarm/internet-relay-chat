@@ -66,12 +66,21 @@ class Server{
         void cmdBot(int clientFd, std::string data);
         void authenticate(int clientFd);
         void runCommand(int clientFd, std::string command);
-        int  userCheck(std::string data);
+        int  userCheck(std::string data, int ft_clientFd);
         bool check_user(const std::string& username, const std::string& mode, const std::string& asterisk);
         int  countWords(std::string data);
-        bool checkDuplicateUser(std::string username);
+        bool checkDuplicateUser(int clientFd);
         void cmdPrivMsg(int clientFd, std::string data);
         void addToResponse(int clientFd, std::string response);
+        void cmdMode(int clientFd, std::string cmd);
+        void i_mode(std::string& channel, std::string& mode);
+        void l_mode(int clientFd, std::string cmd);
+        void o_mode(int clientFd, std::string cmd);
+        void set_operator(std::string& channel, std::string& nick, std::string& mode);
+
+
+
+
 };
 void   port_check(const char *port);
 #endif
