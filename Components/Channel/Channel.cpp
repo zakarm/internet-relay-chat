@@ -1,5 +1,4 @@
 #include "Channel.hpp"
-#include "../Server/Server.hpp"
 
 /**************************************************************/
 /*                        Constructors                        */
@@ -69,9 +68,9 @@ void Channel::setLimit(int limit) { this->limit = limit; }
 int Channel::getMemberCount() const { return this->memberCount; }
 void Channel::setMemberCount(int memberCount) { this->memberCount = memberCount; }
 int Channel::getMode() const { return this->mode; }
-void Channel::setMode(int mode) { this->mode |= mode; }
+void Channel::setMode(int mode) {this->mode |= mode;}
 
-void Channel::unsetMode(int mode) { this->mode &= ~mode; }
+void Channel::unsetMode(int mode) {this->mode &= ~mode; }
 
 /**************************************************************/
 /*                         Functions                          */
@@ -129,7 +128,7 @@ void Channel::removeUser(int clientFd)
     if (!this->operators.size() && this->users.size())
     {
         this->operators.insert(std::make_pair(this->users.begin()->first, this->users.begin()->second));
-        std::string message;
+                std::string message;
         message = ":irc.leet.com MODE " + this->name + " +o " + this->users.begin()->second->getNickName() + "\r\n";
         send(this->operators.begin()->first, message.c_str(), message.size(), 0);
         this->users.erase(this->users.begin());
@@ -204,7 +203,42 @@ bool Channel::isOperator(int clientFd)
 {
     return this->operators.find(clientFd) != this->operators.end();
 }
-
+//to hcange later
+void Channel::o_plus(std::string nick)
+{
+    std::map<int, User*>::iterator it;
+    for (it = users.begin(); it != users.end(); ++it)
+    {
+        if (it->second->getNickName() == nick)
+        {
+            addOperator(it->second);
+            users.erase(it);
+            break;
+        }
+    }
+}
+void Channel::o_minus(std::string nick)
+{
+    std::map<int, User*>::iterator it;
+    for (it = operators.begin(); it != operators.end(); ++it)
+    {
+        if (it->second->getNickName() == nick)
+        {
+            this->users.insert(std::make_pair(it->second->getClientFd(), it->second));
+            removeOperator(it->first);
+            break;
+        }
+    }
+}
+void  Channel::removeOperator(int clientFd)
+{
+    std::map<int, User *>::iterator it = this->operators.find(clientFd);
+    if (it != this->operators.end())
+    {
+        this->operators.erase(it);
+        this->memberCount--;
+    }
+}
 /**************************************************************/
 /*                         Destructor                         */
 /**************************************************************/

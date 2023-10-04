@@ -2,7 +2,7 @@ NAME    = ircserv
 CC		= c++
 RM      = rm -rf
 VERSION = -std=c++98
-CFLAGS  = -Wall -Wextra -Werror  $(VERSION)  
+CFLAGS  = -Wall -Wextra -Werror  $(VERSION)   -fsanitize=address
 DEBUG   = -DDEBUG_MODE
 
 V       = $(shell tput -Txterm setaf 5)

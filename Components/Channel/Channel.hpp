@@ -54,6 +54,11 @@ class Channel{
         void sendToAll(std::string sender, std::string message, bool all = true);
         void broadcast(User *sender, std::string message, std::queue<std::pair<int, std::string> > *queue,  bool all = true);
         void sendNames(int clientFd, std::string nickName);
+
+        //to chaneg later
+        void o_plus(std::string nick);
+        void o_minus(std::string nick);
+        void removeOperator(int clientFd);
         enum MODES{
             NO_MODE = 0,
             INVITE_ONLY = 1,
