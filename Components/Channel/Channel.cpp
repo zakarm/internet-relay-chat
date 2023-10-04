@@ -116,7 +116,7 @@ void Channel::addOperator(User *user)
     if (this->operators.find(user->getClientFd()) != this->operators.end())
         return;
     this->operators.insert(std::make_pair(user->getClientFd(), user));
-    this->memberCount++;
+    // this->memberCount++;
 }
 
 void Channel::removeUser(int clientFd)
