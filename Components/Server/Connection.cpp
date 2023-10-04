@@ -123,12 +123,17 @@ void Server::multipleClients()
         int numfds = poll(&(this->pfds[0]), this->pfds.size(), POLL_TIMEOUT);
         if (numfds == -1)
             customException("Error : poll failed");
-        if (numfds == 0)
-            continue;
         if (this->pfds[0].revents & POLLIN)
             acceptAndDecline();
-        else
+        else if (numfds > 0)
             for (size_t i = 0; i < this->pfds.size(); i++)
                 requests(i);
+        if (!this->responses.empty())
+        {
+            std::pair<int, std::string> response = this->responses.front();
+            this->responses.pop();
+            send(response.first, response.second.c_str(), response.second.length(), 0);
+            std::cout << "count :" << this->responses.size() << std::endl;
+        }
     }
 }
