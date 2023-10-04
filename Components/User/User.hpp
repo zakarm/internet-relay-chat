@@ -51,7 +51,6 @@ class User
         void sendMessage(std::string message);
         void joinChannel(Channel* channel);
         void leaveChannel(Channel* channel);
-        void leaveAllChannels(std::queue<std::pair<int, std::string> > *queue);
         bool isInChannel(std::string channelName);
 };
 

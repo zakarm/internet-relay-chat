@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Utils.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: zmrabet <marvin@42.fr>                     +#+  +:+       +#+        */
+/*   By: nbouljih <nbouljih@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/14 23:37:41 by zmrabet           #+#    #+#             */
-/*   Updated: 2023/09/14 23:48:01 by zmrabet          ###   ########.fr       */
+/*   Updated: 2023/10/03 18:47:44 by nbouljih         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -103,4 +103,6 @@ void Utils::loadErrorsReplies(std::map<int, std::string> &errRep, std::string ne
     errRep.insert(std::make_pair(502, " :Cant change mode for other users"));
     errRep.insert(std::make_pair(524, " :No help available on this topic"));
     errRep.insert(std::make_pair(525, " :Key is not well-formed"));
+    errRep.insert(std::make_pair(650, " :<target> [[(+|-)]<modes> [<mode-parameters>]]"));
+
 } 

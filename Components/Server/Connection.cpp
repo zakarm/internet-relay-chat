@@ -40,10 +40,7 @@ void Server::clientDisconnected(int clientFd)
     if (this->nicks.find(this->users.at(clientFd).getNickName()) != this->nicks.end())
         this->nicks.erase(this->nicks.find(this->users.at(clientFd).getNickName()));
     if (this->users.find(clientFd) != this->users.end())
-    {
-        this->users[clientFd].leaveAllChannels(&(this->responses));
-        this->users.erase(clientFd);
-    }
+        this->users.erase(this->users.find(clientFd));
 
     for (std::vector<struct pollfd>::iterator it = this->pfds.begin(); it != this->pfds.end(); it++)
     {
@@ -88,7 +85,7 @@ void Server::requests(int indexClient)
             clientDisconnected(this->pfds[indexClient].fd);
         else
             runCommand(this->pfds[indexClient].fd, joinBuffers(indexClient, buffer));
-        std::cout << "buffer: " << buffer << std::endl;
+        std::cout << "buffer: "<< buffer << std::endl;
     }
     if (!this->responses.empty())
     {

@@ -87,13 +87,11 @@ bool Server::validNick(const std::string &data)
     return true;
 }
 
-bool Server::checkDuplicateUser(std::string username)
+bool Server::checkDuplicateUser(int clientFd)
 {
-    std::map<int, User>::iterator it;
-    for (it = this->users.begin(); it != this->users.end(); it++)
-        if (it->second.getUserName() == username)
-            return false;
-    return true;
+  if (users.find(clientFd)->second.getUserName().empty())
+        return true;
+    return false;
 }
 
 bool    Server::check_user(const std::string& username, const std::string& mode, const std::string& asterisk)
@@ -111,17 +109,18 @@ bool    Server::check_user(const std::string& username, const std::string& mode,
     return true;
 }
 
-int Server::userCheck(std::string data)
+int Server::userCheck(std::string data, int ft_clientFd)
 {
     std::stringstream s(data);
     std::string username, mode, asterisk;
     s >> username >> mode >> asterisk;
     if (!check_user(username, mode, asterisk))
-        return (461);
-    else if (!checkDuplicateUser(username))
+            return (461);
+    else if (!checkDuplicateUser(ft_clientFd))
         return (462);
     return (1);
 }
+
 
 void Server::cmdUser(int clientFd, std::string data)
 {
@@ -130,24 +129,27 @@ void Server::cmdUser(int clientFd, std::string data)
         sendErrRep(451, clientFd, "", "", "");
         return;
     }
-    int err = userCheck(data);
+    int err = userCheck(data, clientFd);
     if (err == 461 || err == 462)
     {
         sendErrRep(err, clientFd, "USER", "", "");
-        return;
+        return ;
     }
-    std::stringstream s(data);
-    std::string username, mode, asterisk, realname;
-    s >> username >> mode >> asterisk;
-    std::getline(s, realname);
-    std::string::iterator it = realname.begin();
-    while(it!= realname.end() && isspace(*it))
-        it++;
-    realname.erase(realname.begin(), it);
-    if (realname[0] == ':')
-        realname = realname.substr(1, realname.length() - 1);
-    this->users[clientFd].setRealName(realname);
-    this->users[clientFd].setUserName(username);
+    else
+    {   
+        std::stringstream s(data);
+        std::string username, mode, asterisk, realname;
+        s >> username >> mode >> asterisk;
+        std::getline(s, realname);
+        std::string::iterator it = realname.begin();
+        while(it!= realname.end() && isspace(*it))
+            it++;
+        realname.erase(realname.begin(), it);
+        if (realname[0] == ':')
+            realname = realname.substr(1, realname.length() - 1);
+        this->users[clientFd].setRealName(realname);
+        this->users[clientFd].setUserName(username);
+    }
     authenticate(clientFd);
 }
 
@@ -337,11 +339,6 @@ void Server::cmdPrivMsg(int clientFd, std::string data)
                 int to;
                 to = target[0] == '%' ?  1 : 0;
                 target = target.substr(to, target.length());
-                if (!this->users[clientFd].isInChannel(target))
-                {
-                sendErrRep(442, clientFd, "PRIVMSG", this->users.find(clientFd)->second.getNickName(), target); 
-                continue;
-                }
                 std::cout << "target: " << target << std::endl;
                 message = target + " " + message;
                 if (this->channels.find(target) != this->channels.end())
@@ -418,6 +415,8 @@ void Server::runCommand(int clientFd, std::string command)
             cmdLeave(clientFd, cmdParam);
         else if (Utils::stolower(cmdName) == "bot")
             cmdBot(clientFd, cmdParam);
+        else if (Utils::stolower(cmdName) == "mode")
+            cmdMode(clientFd, cmdParam);
         else if (Utils::stolower(cmdName) == "ping")
             return;
         else if (Utils::stolower(cmdName) == "pong")
@@ -455,6 +454,8 @@ void Server::sendErrRep(int code, int clientFd, std::string command, std::string
     else if (code == 333)   ss << ":irc.leet.com 333 " << s1              << " " << s2 << "\r\n";
     else if (code == 411 || code == 412)   ss << ":irc.leet.com 411 " << command << this->errRep.find(code)->second  << "\r\n";
     else if (code == 401)   ss << ":irc.leet.com 411 " << command << " " << s1 << " " << s2 << this->errRep.find(code)->second  << "\r\n";
+    else if (code == 650)   ss << ":irc.leet.com 650 " << command         << this->errRep.find(650)->second << "\r\n";
+    else if (code == 472)   ss << ":irc.leet.com 472 " << command         << this->errRep.find(472)->second << "\r\n";
     send(clientFd, ss.str().c_str(), ss.str().size(), 0);
     ss.clear();
 }
@@ -550,7 +551,7 @@ void Server::cmdJoin(int clientFd, std::string data)
         {
             this->channels.insert(std::make_pair(channel, Channel(channel)));
             std::cout << "channel mode:" << this->channels[channel].getMode() << std::endl;
-            // this->channels[channel].setMode(Channel::KEY);
+            this->channels[channel].setMode(Channel::INVITE_ONLY);
         }
         else
         {   
@@ -583,3 +584,122 @@ void Server::cmdJoin(int clientFd, std::string data)
         this->channels[channel].broadcast(&(this->users.find(clientFd)->second), "JOIN " + channel, &(this->responses), true);
     }
 }
+
+
+int count(std::string str)
+{
+    int count = 0;
+    std::stringstream ss(str);
+    std::string word;
+    while (ss >> word)
+        count++;
+    return count;
+}
+void    Server::i_mode(std::string& channel, std::string& mode)
+{
+    Channel& chan = this->channels[channel];
+    if (mode == "+i" )
+        chan.setMode(chan.INVITE_ONLY);
+    else if (mode == "-i")
+        chan.unsetMode(chan.INVITE_ONLY);
+}
+int covert_to_int(std::string str)
+{
+    std::string::iterator it = str.begin();
+    while (it != str.end() && isdigit(*it))
+        it++;
+    if (it != str.end())
+        return -1;
+    std::stringstream ss(str);
+    int limit;
+    ss >> limit;
+    return limit;
+}
+void    Server::l_mode(int clientFd, std::string cmd)
+{
+    std::string channel, mode, limit;
+    std::stringstream ss(cmd);
+    ss >> channel >> mode >> limit;
+    (void)clientFd;
+    this->channels.find(channel)->second.setMemberCount(0);
+    int max_limit = 30;
+    //to ass as macro!!!!
+    int l = covert_to_int(limit);
+    if (l <= 0 || l > max_limit)
+        sendErrRep(696, clientFd, channel, limit , "limit"); 
+    else if (mode == "+l" || mode == "-l")
+    {
+        if (mode == "+l")
+            this->channels.find(channel)->second.setMemberCount(l);
+        else
+            this->channels.find(channel)->second.setMemberCount(-1);
+    }
+}
+void Server::set_operator(std::string& channel, std::string& nick, std::string& mode)
+{
+    std::map<std::string, Channel>::iterator channelIt = channels.find(channel);
+    // if (mode == "+o" || mode == "-o")
+    // {
+            if (mode == "+o")
+                channelIt->second.o_plus(nick);
+            else if (mode == "-o")
+                channelIt->second.o_minus(nick);
+    // }
+}
+
+void Server::o_mode(int clientFd, std::string cmd)
+{
+    std::string channel, mode, nick;
+    std::stringstream ss(cmd);
+    ss >> channel >> mode >> nick;
+    User& user = this->users[clientFd];
+    if (nick.empty())
+    {
+        sendErrRep(461, clientFd, "MODE", "", "");
+        return;
+    }
+    int targetFd = getUserFdByNick(nick);
+    if (targetFd == -1){
+        sendErrRep(401, clientFd, "MODE", user.getNickName(), nick);
+        return;}
+    User& targetUser = this->users[targetFd];
+    if (!targetUser.isInChannel(channel)){
+        sendErrRep(441, clientFd, "MODE", targetUser.getNickName(), channel);
+        return;}
+    set_operator(channel, nick, mode);
+}
+void    Server::cmdMode(int clientFd, std::string cmd)
+{
+    int c = count(cmd);
+    std::string channel, mode;
+    std::stringstream ss(cmd);
+    ss >> channel >> mode;
+    User& user = this->users[clientFd];
+    Channel& chan = this->channels[channel];
+    if (cmd.empty())
+        sendErrRep(650, clientFd, "MODE", "", "");
+    else if (channel.empty())
+        sendErrRep(461, clientFd, "MODE", "", "");
+    else if (!user.getIsConnected())
+        sendErrRep(451, clientFd, "MODE", "", "");
+    else if (chan.getName() != channel)
+        sendErrRep(403, clientFd, "MODE", user.getNickName(), channel);
+    else if (!user.isInChannel(channel))
+        sendErrRep(442, clientFd, "MODE", user.getNickName(), channel);
+    else if (!chan.isOperator(clientFd))
+        sendErrRep(482, clientFd, "MODE", user.getNickName(), channel);
+    else if (std::strlen(mode.c_str()) == 2)
+    {   
+        if (c == 2 && (cmd.find("+i") != std::string::npos || cmd.find("-i") != std::string::npos))
+            i_mode(channel, mode); //good
+        else if (c == 3 && (cmd.find("+o") != std::string::npos || cmd.find("-o") != std::string::npos))
+            o_mode(clientFd, cmd);
+        else if (c <= 3 && (cmd.find("+l") != std::string::npos || cmd.find("-l") != std::string::npos))
+            l_mode(clientFd, cmd);
+        else
+            sendErrRep(472, clientFd, "MODE", user.getNickName(), channel);
+    }
+    else
+        sendErrRep(472, clientFd, "MODE", user.getNickName(), channel);
+}
+//confclit mode
