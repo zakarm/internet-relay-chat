@@ -77,6 +77,7 @@ class Server{
         void l_mode(int clientFd, std::string cmd);
         void o_mode(int clientFd, std::string cmd);
         void set_operator(std::string& channel, std::string& nick, std::string& mode);
+        void    t_mode(std::string &channel, std::string &mode);
 
 
 
