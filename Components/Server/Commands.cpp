@@ -590,8 +590,6 @@ void Server::cmdJoin(int clientFd, std::string data)
         this->channels[channel].broadcast(&(this->users.find(clientFd)->second), "JOIN " + channel, &(this->responses), true);
     }
 }
-
-
 int count(std::string str)
 {
     int count = 0;
@@ -621,36 +619,41 @@ int covert_to_int(std::string str)
     ss >> limit;
     return limit;
 }
-void    Server::l_mode(int clientFd, std::string cmd)
+void Server::l_mode(int clientFd, std::string cmd)
 {
     std::string channel, mode, limit;
     std::stringstream ss(cmd);
     ss >> channel >> mode >> limit;
-    (void)clientFd;
-    this->channels.find(channel)->second.setMemberCount(0);
     int max_limit = 30;
-    //to ass as macro!!!!
-    int l = covert_to_int(limit);
-    if (l <= 0 || l > max_limit)
-        sendErrRep(696, clientFd, channel, limit , "limit"); 
-    else if (mode == "+l" || mode == "-l")
+    int l = 0;
+    (void)clientFd;
+    //to remove when error rep is done
+    if (mode == "+l" || mode == "-l")
     {
         if (mode == "+l")
-            this->channels.find(channel)->second.setMemberCount(l);
+        { 
+
+            l = covert_to_int(limit);
+            if (l <= 0 || l > max_limit)
+                //sendErrRep(696, clientFd, channel, limit , "limit");
+                std::cout << "696 error to add" << std::endl;
+            else
+            {
+                this->channels[channel].setLimit(l);
+                this->channels[channel].setMode(Channel::LIMIT);
+            }
+        }
         else
-            this->channels.find(channel)->second.setMemberCount(-1);
+            this->channels[channel].unsetMode(Channel::LIMIT);
     }
 }
 void Server::set_operator(std::string& channel, std::string& nick, std::string& mode)
 {
     std::map<std::string, Channel>::iterator channelIt = channels.find(channel);
-    // if (mode == "+o" || mode == "-o")
-    // {
-            if (mode == "+o")
-                channelIt->second.o_plus(nick);
-            else if (mode == "-o")
-                channelIt->second.o_minus(nick);
-    // }
+    if (mode == "+o")
+        channelIt->second.o_plus(nick);
+    else if (mode == "-o")
+        channelIt->second.o_minus(nick);
 }
 
 void Server::o_mode(int clientFd, std::string cmd)
@@ -674,6 +677,15 @@ void Server::o_mode(int clientFd, std::string cmd)
         return;}
     set_operator(channel, nick, mode);
 }
+void Server::t_mode(std::string& channel, std::string& mode)
+{
+    Channel& chan = this->channels[channel];
+    if (mode == "+t")
+        chan.setMode(Channel::TOPIC_PROTECTED);
+    else if (mode == "-t")
+        chan.unsetMode(Channel::TOPIC_PROTECTED);
+}
+// void    k
 void    Server::cmdMode(int clientFd, std::string cmd)
 {
     int c = count(cmd);
@@ -684,6 +696,8 @@ void    Server::cmdMode(int clientFd, std::string cmd)
     Channel& chan = this->channels[channel];
     if (cmd.empty())
         sendErrRep(650, clientFd, "MODE", "", "");
+    else if (mode.empty())
+        std::cout << "in progress" << std::endl;
     else if (channel.empty())
         sendErrRep(461, clientFd, "MODE", "", "");
     else if (!user.getIsConnected())
@@ -702,10 +716,19 @@ void    Server::cmdMode(int clientFd, std::string cmd)
             o_mode(clientFd, cmd);
         else if (c <= 3 && (cmd.find("+l") != std::string::npos || cmd.find("-l") != std::string::npos))
             l_mode(clientFd, cmd);
+        else if (c == 2 && (cmd.find("+t") != std::string::npos || cmd.find("-t") != std::string::npos))
+            t_mode(channel, mode);
+        // else if (c == 3 && (cmd.find("+k") != std::string::npos) || cmd.find("-k") != std::string::npos)
+        //     k_mode(cmd);
         else
             sendErrRep(472, clientFd, "MODE", user.getNickName(), channel);
     }
     else
         sendErrRep(472, clientFd, "MODE", user.getNickName(), channel);
 }
-//confclit mode
+///////////////////////////////////////////
+// mode k are next to push           //
+// error to add 696                      //
+// to add mode response for empty mode   //
+// to modify user input sytax            //
+////////////////////////////////////////// 
