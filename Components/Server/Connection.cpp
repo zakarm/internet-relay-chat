@@ -56,8 +56,7 @@ void Server::clientDisconnected(int clientFd)
 
 std::string Server::joinBuffers(int indexClient, char *buffer)
 {
-
-    if (buffer[strlen(buffer) - 1] != '\n')
+    if (strlen(buffer) > 0 && buffer[strlen(buffer) - 1] != '\n')
         this->buffring[this->pfds[indexClient].fd] += buffer;
     else
     {

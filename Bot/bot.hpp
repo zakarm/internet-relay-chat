@@ -17,7 +17,6 @@ class Bot
 
     public:
         Bot(int port, std::string address, std::string password);
-        Bot(const Bot& bot);
         ~Bot();
         // int getClientSocket() const;
         // void setClientSocket(int clientSocket);
