@@ -465,6 +465,10 @@ void Server::sendErrRep(int code, int clientFd, std::string command, std::string
     else if (code == 401)   ss << ":irc.leet.com 411 " << command << " " << s1 << " " << s2 << this->errRep.find(code)->second  << "\r\n";
     else if (code == 650)   ss << ":irc.leet.com 650 " << command         << this->errRep.find(650)->second << "\r\n";
     else if (code == 472)   ss << ":irc.leet.com 472 " << command         << this->errRep.find(472)->second << "\r\n";
+    else if (code == 473)   ss << ":irc.leet.com 473 " << s1 << " " << s2  << this->errRep.find(472)->second << "\r\n";
+    else if (code == 475)   ss << ":irc.leet.com 475 " << s1 << " " << s2  << this->errRep.find(475)->second << "\r\n";
+    else if (code == 471)   ss << ":irc.leet.com 471 " << s1 << " " << s2  << this->errRep.find(471)->second << "\r\n";
+    else if (code == 696)   ss << ":irc.leet.com 471 " << s1 << " " << s2 << "\r\n";
     send(clientFd, ss.str().c_str(), ss.str().size(), 0);
     ss.clear();
 }
@@ -568,20 +572,17 @@ void Server::cmdJoin(int clientFd, std::string data)
             }
             if (this->channels[channel].getMode() & Channel::INVITE_ONLY && !this->channels[channel].isInvited(this->users.find(clientFd)->second.getNickName()))
             {
-                // sendErrRep(473, clientFd, "JOIN", this->users.find(clientFd)->second.getNickName(), channel);
-                std::cout << "invite" << std::endl;
+                sendErrRep(473, clientFd, "", this->users.find(clientFd)->second.getNickName(), channel);
                 continue;
             }
             if (this->channels[channel].getMode() & Channel::KEY && this->channels[channel].getKey() != password)
             {
-                // sendErrRep(475, clientFd, "JOIN", this->users.find(clientFd)->second.getNickName(), channel);
-                std::cout << "key" << std::endl;
+                sendErrRep(475, clientFd, "", this->users.find(clientFd)->second.getNickName(), channel);
                 continue;
             }
             if (this->channels[channel].getMode() & Channel::LIMIT && this->channels[channel].getMemberCount() >= this->channels[channel].getLimit())
             {
-                // sendErrRep(471, clientFd, "JOIN", this->users.find(clientFd)->second.getNickName(), channel);
-                std::cout << "limit" << std::endl;
+                sendErrRep(471, clientFd, "", this->users.find(clientFd)->second.getNickName(), channel);
                 continue;
             }
         }
@@ -635,8 +636,7 @@ void Server::l_mode(int clientFd, std::string cmd)
 
             l = covert_to_int(limit);
             if (l <= 0 || l > max_limit)
-                //sendErrRep(696, clientFd, channel, limit , "limit");
-                std::cout << "696 error to add" << std::endl;
+                sendErrRep(696, clientFd, "", channel, limit);
             else
             {
                 this->channels[channel].setLimit(l);
@@ -718,7 +718,7 @@ void    Server::cmdMode(int clientFd, std::string cmd)
             l_mode(clientFd, cmd);
         else if (c == 2 && (cmd.find("+t") != std::string::npos || cmd.find("-t") != std::string::npos))
             t_mode(channel, mode);
-        else if (c == 3 && (cmd.find("+k") != std::string::npos) || cmd.find("-k") != std::string::npos)
+        else if (c == 3 && (cmd.find("+k") != std::string::npos || cmd.find("-k") != std::string::npos))
             std::cout << "in progress" << std::endl;
         else
             sendErrRep(472, clientFd, "MODE", user.getNickName(), channel);
