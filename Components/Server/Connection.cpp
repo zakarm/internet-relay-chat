@@ -56,8 +56,7 @@ void Server::clientDisconnected(int clientFd)
 
 std::string Server::joinBuffers(int indexClient, char *buffer)
 {
-
-    if (buffer[strlen(buffer) - 1] != '\n')
+    if (strlen(buffer) > 0 && buffer[strlen(buffer) - 1] != '\n')
         this->buffring[this->pfds[indexClient].fd] += buffer;
     else
     {
@@ -111,7 +110,7 @@ void Server::acceptAndDecline()
     }
     std::cout << Utils::getTime() << " " << inet_ntoa(clientAddr.sin_addr)
               << " has joined the server." << std::endl;
-    this->pfds.push_back((struct pollfd){.fd = client_fd, .events = POLLIN});
+    this->pfds.push_back((struct pollfd){.fd = client_fd, .events = POLLIN, .revents = 0});
     this->users.insert(std::make_pair(client_fd, User(client_fd)));
     this->users[client_fd].setHostName(inet_ntoa(clientAddr.sin_addr));
 }
