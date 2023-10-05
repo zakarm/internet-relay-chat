@@ -58,7 +58,7 @@ void Server::runServer()
     noBlockingFd();
     bindServer();
     listenServer();
-    this->pfds.push_back((struct pollfd){.fd = this->serverSocket, .events = POLLIN | POLLOUT, .revents = 0});
+    this->pfds.push_back((struct pollfd){.fd = this->serverSocket, .events = POLLIN, .revents = 0});
     multipleClients();
 }
 

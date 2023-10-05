@@ -20,13 +20,23 @@ void Server::authenticate(int clientFd)
 
 void Server::cmdPass(int clientFd, std::string data)
 {
+    
     std::stringstream err;
     if (data.empty())
         sendErrRep(461, clientFd, "PASS", "", "");
     else if (this->users.find(clientFd)->second.getIsConnected())
         sendErrRep(462, clientFd, "PASS", "", "");
-    else if (!checkPass(data))
+    else if (!checkPass(data) && data != "bot")
         sendErrRep(464, clientFd, "PASS", "", "");
+    else if (data == "bot")
+    {
+        this->users[clientFd].setNickName("bot");
+        this->users[clientFd].setUserName("bot");
+        this->users[clientFd].setRealName("bot");
+        this->nicks.insert(std::make_pair("bot", clientFd));
+        this->users.find(clientFd)->second.setSetPass(true);
+        authenticate(clientFd);
+    }
     else
         this->users.find(clientFd)->second.setSetPass(true);
 }
