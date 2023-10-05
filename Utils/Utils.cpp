@@ -36,9 +36,9 @@ std::string Utils::getTime()
 
 std::string Utils::getDate()
 {
-    std::time_t now = std::time(NULL);
-    std::tm *ptm = std::localtime(&now);
-    std::string date(std::asctime(ptm));
+    time_t now = time(NULL);
+    tm *ptm = localtime(&now);
+    std::string date(asctime(ptm));
     if (date.find('\n') != std::string::npos)
         date = date.substr(0, date.find('\n'));
     return date;

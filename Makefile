@@ -1,9 +1,9 @@
 NAME    = ircserv
 NAME_BONUS = botirc
-CC		= c++
+CC		= g++
 RM      = rm -rf
 VERSION = -std=c++98
-CFLAGS  = -Wall -Wextra -Werror  $(VERSION)  -g -fsanitize=address
+CFLAGS  = -Wall -Wextra -Werror  $(VERSION) #-g -fsanitize=address
 DEBUG   = -DDEBUG_MODE
 
 V       = $(shell tput -Txterm setaf 5)
@@ -17,7 +17,7 @@ INCLUDES   = Components/Components.hpp \
 			 Utils/Utils.hpp \
 			 Components/User/User.hpp \
 			 Components/Channel/Channel.hpp \
-			 Bot/bot.hpp
+			 Bot/Bot.hpp
 
 
 CLIENT     = Components/User/User.cpp \
@@ -33,7 +33,7 @@ UTILS      = Utils/Utils.cpp
 
 MAIN	   = main.cpp
 
-BOT        = Bot/bot.cpp
+BOT        = Bot/Bot.cpp
 MAIN_BONUS = Bot/main.cpp
 BIN        = obj/
 BIN_BONUS  = obj_bounus/

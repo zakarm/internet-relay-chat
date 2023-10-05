@@ -31,5 +31,7 @@
 #include <map>
 #include <queue>
 #include <signal.h>
+#include <algorithm>
+#include <cstring>
 
 #endif
