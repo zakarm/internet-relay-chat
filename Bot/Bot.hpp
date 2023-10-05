@@ -17,4 +17,5 @@ class Bot
         Bot(int port, std::string address, std::string password);
         ~Bot();
         void connectToServer();
+        void runCommands();
 };
