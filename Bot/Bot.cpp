@@ -1,4 +1,4 @@
-#include "bot.hpp"
+#include "Bot.hpp"
 
 Bot::Bot(int port, std::string address, std::string password)
 {
@@ -28,8 +28,16 @@ void Bot::connectToServer()
     if (connect(this->clientSocket, (struct sockaddr *)&this->clientAddr, this->socketLen) < 0)
         std::runtime_error("Error: connect failed");
     std::cout << "Connected to server" << std::endl;
-    char buffer[1024] = "HELLO";
-    // bzero(buffer, sizeof(buffer));
-    while (1)
-        send (this->clientSocket, buffer, sizeof(buffer), 0);
+    char buffer[1024];
+    bzero(buffer, sizeof(buffer));
+    send(this->clientSocket, "PASS pass\r\n", 11,0);
+    send(this->clientSocket, "USER bot 0 *\r\n", 16, 0);
+    send(this->clientSocket, "NICK bot\r\n", 12, 0);
+    while(1);
+    // while (1)
+    // {
+        
+    //     // recv(this->clientSocket, buffer, sizeof(buffer), 0);
+    //     std::cout << buffer << std::endl;
+    // }
 }
