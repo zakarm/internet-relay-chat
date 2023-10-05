@@ -18,23 +18,6 @@ Bot::Bot(int port, std::string address, std::string password)
     this->connectToServer();
 }
 
-Bot::Bot(const Bot &bot)
-{
-    
-    // if (this != &bot)
-    // {
-    //     this->clientSocket = bot.getClientSocket();
-    //     this->clientAddr = bot.getClientAddr();
-    //     this->socketLen = bot.getSocketLen();
-    //     this->port = bot.getPort();
-    //     this->password = bot.getPassword();
-    //     this->nickName = bot.getNickName();
-    //     this->userName = bot.getUserName();
-    //     this->realName = bot.getRealName();
-    //     // this->serverName = bot.getServerName();
-    // }
-}
-
 Bot::~Bot()
 {
     close(this->clientSocket);
@@ -45,9 +28,8 @@ void Bot::connectToServer()
     if (connect(this->clientSocket, (struct sockaddr *)&this->clientAddr, this->socketLen) < 0)
         std::runtime_error("Error: connect failed");
     std::cout << "Connected to server" << std::endl;
+    char buffer[1024] = "HELLO";
+    // bzero(buffer, sizeof(buffer));
     while (1)
-    send (this->clientSocket, "hello from client this is a long string test: aksjdklajskldjklasjdklajsdkljaklsdjasjdkljaklsdjasfkbahlsbdfjb", 108, 0);
-    
+        send (this->clientSocket, buffer, sizeof(buffer), 0);
 }
-
-
