@@ -36,9 +36,9 @@ std::string Utils::getTime()
 
 std::string Utils::getDate()
 {
-    std::time_t now = std::time(NULL);
-    std::tm *ptm = std::localtime(&now);
-    std::string date(std::asctime(ptm));
+    time_t now = time(NULL);
+    tm *ptm = localtime(&now);
+    std::string date(asctime(ptm));
     if (date.find('\n') != std::string::npos)
         date = date.substr(0, date.find('\n'));
     return date;
@@ -104,5 +104,5 @@ void Utils::loadErrorsReplies(std::map<int, std::string> &errRep, std::string ne
     errRep.insert(std::make_pair(524, " :No help available on this topic"));
     errRep.insert(std::make_pair(525, " :Key is not well-formed"));
     errRep.insert(std::make_pair(650, " :<target> [[(+|-)]<modes> [<mode-parameters>]]"));
-
+    errRep.insert(std::make_pair(650, " :<target> [[(+|-)]<modes> [<mode-parameters>]]"));
 } 
