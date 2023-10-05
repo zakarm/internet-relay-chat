@@ -38,7 +38,7 @@ MAIN_BONUS = Bot/main.cpp
 BIN        = obj/
 BIN_BONUS  = obj_bounus/
 SRC        = $(UTILS) $(CLIENT) $(SERVER) $(MAIN)
-SRC_BONUS  = $(BOT) $(MAIN_BONUS)
+SRC_BONUS  = $(UTILS) $(BOT) $(MAIN_BONUS)
 
 OBJ        = $(addprefix $(BIN),$(SRC:.cpp=.o))
 OBJ_BONUS  = $(addprefix $(BIN_BONUS),$(SRC_BONUS:.cpp=.o))
