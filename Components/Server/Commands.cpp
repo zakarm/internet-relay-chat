@@ -286,10 +286,14 @@ void Server::cmdKick(int clientFd, std::string data)
                         else
                         {
                             if (!comment.empty() && comment[0] == ':')
-                                comment = comment.substr(0, comment.length());
+                                comment = comment.substr(1, comment.length());
                             std::stringstream rep;
                             rep << ":" << this->users.find(clientFd)->second.getNickName() << " KICK " << channelName << " " << nickName << " " << comment << "\r\n";
-                            send(target, rep.str().c_str(), rep.str().size(), 0);
+                            std::map<int, User *>::const_iterator it;
+                            for (it = this->channels[channelName].getUsers().begin(); it != this->channels[channelName].getUsers().end(); it++)
+                                send(it->first, rep.str().c_str(), rep.str().size(), 0);
+                            for (it = this->channels[channelName].getOperators().begin(); it != this->channels[channelName].getOperators().end(); it++)
+                                send(it->first, rep.str().c_str(), rep.str().size(), 0);
                             this->users.find(target)->second.leaveChannel(&(this->channels.find(channelName)->second));
                         }
                     }
@@ -443,7 +447,7 @@ void Server::sendErrRep(int code, int clientFd, std::string command, std::string
     else if (code == 431)   ss << ":irc.leet.com 431 " << command         << this->errRep.find(431)->second << "\r\n";
     else if (code == 421)   ss << ":irc.leet.com 421 " << command         << this->errRep.find(421)->second << "\r\n";
     else if (code == 331)   ss << ":irc.leet.com 331 " << s1              << " " << s2 << this->errRep.find(331)->second << "\r\n";
-    else if (code == 442)   ss << ":irc.leet.com 442 " << command         << " " << s1 << " " << s2 << this->errRep.find(442)->second << "\r\n";
+    else if (code == 442)   ss << ":irc.leet.com 442 " << s1 << " " << s2 << this->errRep.find(442)->second << "\r\n";
     else if (code == 441)   ss << ":irc.leet.com 441 " << command         << " " << s1 << " " << s2 << this->errRep.find(441)->second << "\r\n";
     else if (code == 403)   ss << ":irc.leet.com 403 " << command         << " " << s1 << " " << s2 << this->errRep.find(403)->second << "\r\n";
     else if (code == 482)   ss << ":irc.leet.com 482 " << command         << " " << s1 << " " << s2 << this->errRep.find(482)->second << "\r\n";
@@ -500,18 +504,15 @@ void Server::cmdLeave(int clientFd, std::string data)
                 continue;
             }
             this->users.find(clientFd)->second.leaveChannel(&(this->channels.find(channel)->second));
-            if (message.empty())
-                message = this->users.find(clientFd)->second.getNickName() + " has left " + channel;
-            else if (message[0] == ':')
-                message = message.substr(1, message.length() - 1);
-            else
-                message = ":" + this->users.find(clientFd)->second.getNickName() + " " + message;
-            this->channels[channel].broadcast(&(this->users.find(clientFd)->second), "PART " + channel + " " + message, &(this->responses), true);
+            std::string message = ":" + this->users[clientFd].getNickName() + "!~" + this->users[clientFd].getUserName() + "@" + this->users[clientFd].getHostName() + " PART " + this->channels[channel].getName() + "\r\n";
+            send(clientFd, message.c_str(), message.size(), 0);
+            this->channels[channel].broadcast(&(this->users.find(clientFd)->second), "PART " + channel + " :" + message, &(this->responses), true);
+
+            std::cout << "channel size: " << this->channels[channel].getMemberCount() << std::endl;
+            std::cout << this->users.find(clientFd)->second.getNickName() << " left " << channel << std::endl;
+            if (this->channels.find(channel) != this->channels.end() && this->channels[channel].getMemberCount() == 0)
+                {this->channels.erase(channel); std::cout << "channel erased" << std::endl;}
         }
-        std::cout << this->users.find(clientFd)->second.getNickName() << " left " << channel << std::endl;
-        std::cout << "channel size: " << this->channels[channel].getMemberCount() << std::endl;
-        if (this->channels.find(channel) != this->channels.end() && this->channels[channel].getMemberCount() == 0)
-            {this->channels.erase(channel); std::cout << "channel erased" << std::endl;}
     }
 }
 
