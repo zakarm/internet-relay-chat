@@ -110,7 +110,7 @@ void Server::acceptAndDecline()
     }
     std::cout << Utils::getTime() << " " << inet_ntoa(clientAddr.sin_addr)
               << " has joined the server." << std::endl;
-    this->pfds.push_back((struct pollfd){.fd = client_fd, .events = POLLIN});
+    this->pfds.push_back((struct pollfd){.fd = client_fd, .events = POLLIN, .revents = 0});
     this->users.insert(std::make_pair(client_fd, User(client_fd)));
     this->users[client_fd].setHostName(inet_ntoa(clientAddr.sin_addr));
 }
