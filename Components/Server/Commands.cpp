@@ -718,7 +718,7 @@ void    Server::cmdMode(int clientFd, std::string cmd)
         else if (c == 2 && (cmd.find("+t") != std::string::npos || cmd.find("-t") != std::string::npos))
             t_mode(channel, mode);
         else if (c == 3 && (cmd.find("+k") != std::string::npos) || cmd.find("-k") != std::string::npos)
-            std::cout << "in progress" << std::endl;
+            std::cout << "in progress !" << std::endl;
         else
             sendErrRep(472, clientFd, "MODE", user.getNickName(), channel);
     }
