@@ -253,6 +253,10 @@ void  Channel::removeOperator(int clientFd)
         this->memberCount--;
     }
 }
+void    Channel::unsetKey()
+{
+    this->key = "";
+}
 /**************************************************************/
 /*                         Destructor                         */
 /**************************************************************/
