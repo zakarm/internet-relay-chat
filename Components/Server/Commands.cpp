@@ -352,8 +352,8 @@ void Server::cmdPrivMsg(int clientFd, std::string data)
                 target = target.substr(to, target.length());
                 if (!this->users[clientFd].isInChannel(target))
                 {
-                sendErrRep(442, clientFd, "PRIVMSG", this->users.find(clientFd)->second.getNickName(), target); 
-                continue;
+                    sendErrRep(442, clientFd, "PRIVMSG", this->users.find(clientFd)->second.getNickName(), target); 
+                    continue;
                 }
                 std::cout << "target: " << target << std::endl;
                 message = target + " " + message;
