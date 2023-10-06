@@ -60,6 +60,7 @@ class Channel{
         void o_plus(std::string nick  , std::queue<std::pair<int , std::string> > *queue);
         void o_minus(std::string nick , std::queue<std::pair<int , std::string> > *queue);
         void removeOperator(int clientFd);
+        void unsetKey();
         enum MODES{
             NO_MODE = 0,
             INVITE_ONLY = 1,

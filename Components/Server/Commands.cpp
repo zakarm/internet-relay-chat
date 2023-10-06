@@ -736,13 +736,41 @@ void    Server::cmdMode(int clientFd, std::string cmd)
             l_mode(clientFd, cmd);
         else if (c == 2 && (cmd.find("+t") != std::string::npos || cmd.find("-t") != std::string::npos))
             t_mode(channel, mode);
-        else if (c == 3 && (cmd.find("+k") != std::string::npos || cmd.find("-k") != std::string::npos))
-            std::cout << "in progress" << std::endl;
+        else if (c <= 3 && (cmd.find("+k") != std::string::npos || cmd.find("-k") != std::string::npos))
+                k_mode(cmd);
         else
             sendErrRep(472, clientFd, "MODE", user.getNickName(), channel);
     }
     else
         sendErrRep(472, clientFd, "MODE", user.getNickName(), channel);
+}
+void    Server::k_mode(std::string cmd)
+{
+    std::string channel, mode, key;
+    std::stringstream ss(cmd);
+    ss >> channel >> mode >> key;
+    Channel& chan = this->channels[channel];
+    if (!key.empty())
+    {
+        if (mode == "+k")
+        {
+            chan.setKey(key);
+            chan.setMode(Channel::KEY);
+        }
+        else if (mode == "-k")
+        {
+            if (chan.getKey() == key)
+            {
+                chan.unsetMode(Channel::KEY);
+                chan.setKey(""); 
+            }
+            else
+                sendErrRep(467, 0, "MODE", "", "");
+        }
+    }
+    else
+        std::cout << "error 696" << std::endl;
+        //set error 696
 }
 ///////////////////////////////////////////
 // mode k are next to push           //
