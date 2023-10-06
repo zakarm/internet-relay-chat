@@ -134,7 +134,7 @@ void Channel::removeUser(int clientFd)
     if (!this->operators.size() && this->users.size())
     {
         this->operators.insert(std::make_pair(this->users.begin()->first, this->users.begin()->second));
-                std::string message;
+        std::string message;
         message = ":irc.leet.com MODE " + this->name + " +o " + this->users.begin()->second->getNickName() + "\r\n";
         send(this->operators.begin()->first, message.c_str(), message.size(), 0);
         this->users.erase(this->users.begin());
@@ -157,21 +157,21 @@ void Channel::broadcast(User *sender, std::string message, std::queue<std::pair<
             queue->push(std::make_pair(it->first, message));
 }
 
-void Channel::sendToAll(std::string sender, std::string message, bool all)
-{
-    message = ":" + sender + " PRIVMSG " + this->name + " :" + message + "\r\n";
+// void Channel::sendToAll(std::string sender, std::string message, bool all)
+// {
+//     message = ":" + sender + " PRIVMSG " + this->name + " :" + message + "\r\n";
 
-    std::map<int, User *>::iterator it;
-    if (all)
-    {
-        for (it = this->users.begin(); it != this->users.end(); it++)
-            if (it->second->getNickName() != sender)
-                send(it->first, message.c_str(), message.size(), 0);
-    }
-    for (it = this->operators.begin(); it != this->operators.end(); it++)
-        if (it->second->getNickName() != sender)
-            send(it->first, message.c_str(), message.size(), 0);
-}
+//     std::map<int, User *>::iterator it;
+//     if (all)
+//     {
+//         for (it = this->users.begin(); it != this->users.end(); it++)
+//             if (it->second->getNickName() != sender)
+//                 send(it->first, message.c_str(), message.size(), 0);
+//     }
+//     for (it = this->operators.begin(); it != this->operators.end(); it++)
+//         if (it->second->getNickName() != sender)
+//             send(it->first, message.c_str(), message.size(), 0);
+// }
 void Channel::listUsers()
 {
     std::cout << "Channel name: " << this->name << std::endl;
@@ -210,8 +210,9 @@ bool Channel::isOperator(int clientFd)
     return this->operators.find(clientFd) != this->operators.end();
 }
 //to hcange later
-void Channel::o_plus(std::string nick)
+void Channel::o_plus(std::string nick , std::queue<std::pair<int , std::string> > *queue)
 {
+    (void) queue;
     std::map<int, User*>::iterator it;
     for (it = users.begin(); it != users.end(); ++it)
     {
@@ -222,9 +223,13 @@ void Channel::o_plus(std::string nick)
             break;
         }
     }
+    // std::string message;
+    // message = "MODE " + this->name + " +o " + nick + "\r\n";
+    // // this->broadcast(it->second, message, queue);
 }
-void Channel::o_minus(std::string nick)
+void Channel::o_minus(std::string nick , std::queue<std::pair<int , std::string> > *queue)
 {
+    (void) queue;
     std::map<int, User*>::iterator it;
     for (it = operators.begin(); it != operators.end(); ++it)
     {
@@ -235,6 +240,9 @@ void Channel::o_minus(std::string nick)
             break;
         }
     }
+    // std::string message;
+    // message = "MODE " + this->name + " +o " + nick + "\r\n";
+    // this->broadcast(it->second, message, queue);
 }
 void  Channel::removeOperator(int clientFd)
 {
