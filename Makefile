@@ -1,6 +1,6 @@
 NAME    = ircserv
 NAME_BONUS = botirc
-CXX		= g++
+CXX		= c++
 RM      = rm -rf
 VERSION = -std=c++98
 CFLAGS  = -Wall -Wextra -Werror  $(VERSION) -g -fsanitize=address
