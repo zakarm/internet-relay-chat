@@ -8,6 +8,7 @@ Bot::Bot(int port, std::string address, std::string password)
     this->userName = "Bot";
     this->realName = "Bot";
     this->serverName = "Bot";
+    this->lastSenderNick = "";
     this->socketLen = sizeof(this->clientAddr);
     this->clientSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (this->clientSocket < 0)
@@ -42,7 +43,7 @@ void Bot::connectToServer()
         bzero(buffer, sizeof(buffer));
         int err = recv(this->clientSocket, buffer, sizeof(buffer), 0);
         if (err > 0)
-            runCommand(clientSocket, buffer);
+            runCommand(buffer);
         else
         {
             close(this->clientSocket);
@@ -51,23 +52,32 @@ void Bot::connectToServer()
     }
 }
 
-void Bot::runCommand(int clientSocket, std::string data)
+void Bot::runCommand(std::string data)
 {
-    (void)clientSocket;
     std::stringstream ss(data);
-    std::string param, command, client, message;
-    ss >> param;
-    ss >> std::ws;
-    ss >> command;
-    ss >> std::ws;
-    ss >> client;
-    ss >> std::ws;
+    std::string param, command, client, target, message;
+    ss >> param >> std::ws >> command >> std::ws >> client >> std::ws >> target >> std::ws;
     std::getline(ss, message);
-    if (message == ":time\r\n" || message == "time\r\n" || message == ":time\n" || message == ":time\r"
-    || message == "time\n" || message == "time\r")
+    std::cout << param << " " << command << std::endl;
+    if (param == ":irc.leet.com" && command == "401")
     {
-        std::stringstream ss;
-        ss << "PRIVMSG " << param.substr(1, param.find('!') - 1).c_str() << " :time " << Utils::getDate() << "\r\n";
-        send(this->clientSocket, ss.str().c_str(), ss.str().size(), 0);
+        std::stringstream err;
+        err << "PRIVMSG " << this->lastSenderNick << " :BOT No such nick " << "\r\n";
+        send(this->clientSocket, err.str().c_str(), err.str().size(), 0);
+    }
+    else if (command == "PRIVMSG")
+    {
+        std::stringstream err;
+        err << "PRIVMSG ";
+        if (!target.empty() && !message.empty())
+        {
+            if (target[0] == ':')
+                target = target.substr(1, target.size());
+            this->lastSenderNick = param.substr(1, param.find('!') - 1);
+            err << target << " :[Anonymous Message] " << message << "\r\n";
+        }
+        else
+            err << param.substr(1, param.find('!') - 1).c_str() << " :BOT Empty target or message " << "\r\n";
+        send(this->clientSocket, err.str().c_str(), err.str().size(), 0);
     }
 }

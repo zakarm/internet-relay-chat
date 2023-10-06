@@ -13,10 +13,11 @@ class Bot
         std::string userName;
         std::string realName;
         std::string serverName;
+        std::string lastSenderNick;
 
     public:
         Bot(int port, std::string address, std::string password);
         ~Bot();
         void connectToServer();
-        void runCommand(int clientSocket, std::string data);
+        void runCommand(std::string data);
 };
