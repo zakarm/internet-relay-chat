@@ -1,4 +1,5 @@
 #include "../Components/Components.hpp"
+#include "../Utils/Utils.hpp"
 
 class Bot
 {
@@ -17,5 +18,5 @@ class Bot
         Bot(int port, std::string address, std::string password);
         ~Bot();
         void connectToServer();
-        void runCommands();
+        void runCommand(int clientSocket, std::string data);
 };
