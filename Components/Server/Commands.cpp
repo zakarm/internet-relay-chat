@@ -406,12 +406,12 @@ void Server::runCommand(int clientFd, std::string command)
         return ;
     else if (c == "quit")
         return clientDisconnected(clientFd), void();
-    std::unordered_map<std::string, void (Server::*)(int, std::string)> cmds;
+    std::map<std::string, void (Server::*)(int, std::string)> cmds;
     cmds["pass"] = &Server::cmdPass; cmds["nick"] = &Server::cmdNick;
     cmds["user"] = &Server::cmdUser; cmds["topic"] = &Server::cmdTopic; cmds["invite"] = &Server::cmdInvite;
     cmds["kick"] = &Server::cmdKick; cmds["privmsg"] = &Server::cmdPrivMsg; cmds["join"] = &Server::cmdJoin;
     cmds["leave"] = &Server::cmdLeave; cmds["bot"] = &Server::cmdBot; cmds["mode"] = &Server::cmdMode;
-    std::unordered_map<std::string, void (Server::*)(int, std::string)>::iterator it;
+    std::map<std::string, void (Server::*)(int, std::string)>::iterator it;
     it = cmds.find(c);
     (it == cmds.end()) ? sendErrRep(421, clientFd, command, "", "") : (this->*it->second)(clientFd, cmdParam);
 }

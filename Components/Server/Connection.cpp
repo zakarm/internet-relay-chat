@@ -132,7 +132,7 @@ void Server::multipleClients()
             std::pair<int, std::string> response = this->responses.front();
             this->responses.pop();
             send(response.first, response.second.c_str(), response.second.length(), 0);
-            std::cout << "count :" << this->responses.size() << std::endl;
+            // std::cout << "count :" << this->responses.size() << std::endl;
         }
     }
 }
