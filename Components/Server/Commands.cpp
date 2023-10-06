@@ -454,27 +454,27 @@ void Server::sendErrRep(int code, int clientFd, std::string command, std::string
     else if (code == 3)     ss << ":irc.leet.com 003 " << u.getNickName() << " " << this->errRep.find(3)->second << " " << Utils::getDate() << "\r\n";
     else if (code == 4)     ss << ":irc.leet.com 004 " << u.getNickName() << " " << this->errRep.find(4)->second << "\r\n";
     else if (code == 5)     ss << ":irc.leet.com 005 " << u.getNickName() << " " << this->errRep.find(5)->second << "\r\n";
-    else if (code == 431)   ss << ":irc.leet.com 431 " << command         << this->errRep.find(431)->second << "\r\n";
-    else if (code == 421)   ss << ":irc.leet.com 421 " << command         << this->errRep.find(421)->second << "\r\n";
+    else if (code == 431)   ss << ":irc.leet.com 431 " << this->errRep.find(431)->second << "\r\n";
+    else if (code == 421)   ss << ":irc.leet.com 421 " << this->errRep.find(421)->second << "\r\n";
     else if (code == 331)   ss << ":irc.leet.com 331 " << s1              << " " << s2 << this->errRep.find(331)->second << "\r\n";
     else if (code == 442)   ss << ":irc.leet.com 442 " << s1 << " " << s2 << this->errRep.find(442)->second << "\r\n";
-    else if (code == 441)   ss << ":irc.leet.com 441 " << command         << " " << s1 << " " << s2 << this->errRep.find(441)->second << "\r\n";
-    else if (code == 403)   ss << ":irc.leet.com 403 " << command         << " " << s1 << " " << s2 << this->errRep.find(403)->second << "\r\n";
-    else if (code == 482)   ss << ":irc.leet.com 482 " << command         << " " << s1 << " " << s2 << this->errRep.find(482)->second << "\r\n";
-    else if (code == 443)   ss << ":irc.leet.com 443 " << command         << " " << s1 << " " << s2 << this->errRep.find(443)->second << "\r\n";
-    else if (code == 433)   ss << ":irc.leet.com 433 " << command         << " " << u.getNickName() << this->errRep.find(433)->second << "\r\n";
-    else if (code == 432)   ss << ":irc.leet.com 432 " << command         << " " << u.getNickName() << this->errRep.find(432)->second << "\r\n";
-    else if (code == 451)   ss << ":irc.leet.com 451 " << command         << this->errRep.find(451)->second << "\r\n";
-    else if (code == 461)   ss << ":irc.leet.com 461 " << command         << this->errRep.find(461)->second << "\r\n";
-    else if (code == 462)   ss << ":irc.leet.com 462 " << command         << this->errRep.find(462)->second << "\r\n";
-    else if (code == 464)   ss << ":irc.leet.com 464 " << command         << this->errRep.find(464)->second << "\r\n";
-    else if (code == 341)   ss << ":irc.leet.com 341 " << command         << " " << s1 << " " << s2  << "\r\n";
+    else if (code == 441)   ss << ":irc.leet.com 441 " << s1 << " " << s2 << this->errRep.find(441)->second << "\r\n";
+    else if (code == 403)   ss << ":irc.leet.com 403 " << s1 << " " << s2 << this->errRep.find(403)->second << "\r\n";
+    else if (code == 482)   ss << ":irc.leet.com 482 " << s1 << " " << s2 << this->errRep.find(482)->second << "\r\n";
+    else if (code == 443)   ss << ":irc.leet.com 443 " << s1 << " " << s2 << this->errRep.find(443)->second << "\r\n";
+    else if (code == 433)   ss << ":irc.leet.com 433 " << u.getNickName() << this->errRep.find(433)->second << "\r\n";
+    else if (code == 432)   ss << ":irc.leet.com 432 " << u.getNickName() << this->errRep.find(432)->second << "\r\n";
+    else if (code == 451)   ss << ":irc.leet.com 451 " << this->errRep.find(451)->second << "\r\n";
+    else if (code == 461)   ss << ":irc.leet.com 461 " << this->errRep.find(461)->second << "\r\n";
+    else if (code == 462)   ss << ":irc.leet.com 462 " << this->errRep.find(462)->second << "\r\n";
+    else if (code == 464)   ss << ":irc.leet.com 464 " << this->errRep.find(464)->second << "\r\n";
+    else if (code == 341)   ss << ":irc.leet.com 341 " << s1 << " " << s2  << "\r\n";
     else if (code == 332)   ss << ":irc.leet.com 332 " << s1              << " " << s2 << "\r\n";
     else if (code == 333)   ss << ":irc.leet.com 333 " << s1              << " " << s2 << "\r\n";
     else if (code == 411 || code == 412)   ss << ":irc.leet.com 411 " << command << this->errRep.find(code)->second  << "\r\n";
-    else if (code == 401)   ss << ":irc.leet.com 411 " << command << " " << s1 << " " << s2 << this->errRep.find(code)->second  << "\r\n";
-    else if (code == 650)   ss << ":irc.leet.com 650 " << command         << this->errRep.find(650)->second << "\r\n";
-    else if (code == 472)   ss << ":irc.leet.com 472 " << command         << this->errRep.find(472)->second << "\r\n";
+    else if (code == 401)   ss << ":irc.leet.com 411 " << s1 << " " << s2 << this->errRep.find(code)->second  << "\r\n";
+    else if (code == 650)   ss << ":irc.leet.com 650 " << this->errRep.find(650)->second << "\r\n";
+    else if (code == 472)   ss << ":irc.leet.com 472 " << this->errRep.find(472)->second << "\r\n";
     else if (code == 473)   ss << ":irc.leet.com 473 " << s1 << " " << s2  << this->errRep.find(472)->second << "\r\n";
     else if (code == 475)   ss << ":irc.leet.com 475 " << s1 << " " << s2  << this->errRep.find(475)->second << "\r\n";
     else if (code == 471)   ss << ":irc.leet.com 471 " << s1 << " " << s2  << this->errRep.find(471)->second << "\r\n";
@@ -661,9 +661,9 @@ void Server::set_operator(std::string& channel, std::string& nick, std::string& 
 {
     std::map<std::string, Channel>::iterator channelIt = channels.find(channel);
     if (mode == "+o")
-        channelIt->second.o_plus(nick);
+        channelIt->second.o_plus(nick , &(this->responses));
     else if (mode == "-o")
-        channelIt->second.o_minus(nick);
+        channelIt->second.o_minus(nick, &(this->responses));
 }
 
 void Server::o_mode(int clientFd, std::string cmd)
@@ -686,6 +686,14 @@ void Server::o_mode(int clientFd, std::string cmd)
         sendErrRep(441, clientFd, "MODE", targetUser.getNickName(), channel);
         return;}
     set_operator(channel, nick, mode);
+    std::string message;
+    if (mode == "+o")
+        message = "MODE " + channel + " +o " + nick + "\r\n";
+    else
+        message = "MODE " + channel + " -o " + nick + "\r\n";
+    this->channels[channel].broadcast(&(this->users.find(clientFd)->second), message, &(this->responses), true);
+    message += ":" + this->users[clientFd].getNickName() + "!~" + this->users[clientFd].getUserName() + "@" + this->users[clientFd].getHostName() + " " + message;
+    send(clientFd, message.c_str(), message.size(), 0);
 }
 void Server::t_mode(std::string& channel, std::string& mode)
 {
