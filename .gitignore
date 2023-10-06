@@ -1,4 +1,5 @@
 **/*.o
 ircserv
+botirc
 obj/
 .vscode
