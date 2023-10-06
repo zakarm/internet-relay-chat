@@ -1,6 +1,6 @@
 NAME    = ircserv
 NAME_BONUS = botirc
-CC		= g++
+CXX		= g++
 RM      = rm -rf
 VERSION = -std=c++98
 CFLAGS  = -Wall -Wextra -Werror  $(VERSION) -g -fsanitize=address
@@ -59,25 +59,25 @@ bonus : $(NAME_BONUS)
 $(NAME) : $(OBJ)
 	@echo "\n"
 	@echo $(BANNER)
-	@$(CC) $(CFLAGS)  $(OBJ) -o $@
+	@$(CXX) $(CFLAGS)  $(OBJ) -o $@
 	@echo "\t\t Generate Executable ( $(V)$@$(W) )\n"
 
 $(NAME_BONUS) : $(OBJ_BONUS)
 	@echo "\n"
 	@echo $(BANNER)
-	@$(CC) $(CFLAGS)  $(OBJ_BONUS) -o $@
+	@$(CXX) $(CFLAGS)  $(OBJ_BONUS) -o $@
 	@echo "\t\t Generate Executable ( $(V)$@$(W) )\n"
 
 
 $(BIN)%.o : %.cpp $(INCLUDES)
 	@mkdir -p $(@D)
 	@echo "$(V){$(W) Compiling ... $@ $(V)}$(W)"
-	@$(CC) $(CFLAGS) $(DEBUG) -c $< -o $@
+	@$(CXX) $(CFLAGS) $(DEBUG) -c $< -o $@
 
 $(BIN_BONUS)%.o : %.cpp $(INCLUDES)
 	@mkdir -p $(@D)
 	@echo "$(V){$(W) Compiling ... $@ $(V)}$(W)"
-	@$(CC) $(CFLAGS) $(DEBUG) -c $< -o $@
+	@$(CXX) $(CFLAGS) $(DEBUG) -c $< -o $@
 
 clean :
 	@for obj in $(OBJ); do \
