@@ -1,5 +1,5 @@
 import asyncio
-MAX_SOCKETS = 100
+MAX_SOCKETS = 10
 DELAY = 0.01
 
 async def connect_socket(i):
@@ -13,14 +13,14 @@ async def connect_socket(i):
         writer.write(f"USER a{i} 0 *\r\n".encode())
         await asyncio.sleep(DELAY)
         writer.write("JOIN #general\r\n".encode())
-        await asyncio.sleep(DELAY)
+        # await asyncio.sleep(DELAY)
         await writer.drain()
         while True:
             data = await reader.read(1024)
             if not data:
                 break
-            response = data.decode()
-            print(f"Received: {response}")
+            # response = data.decode()
+            # print(f"Received: {response}")
 
             await asyncio.sleep(DELAY)
             writer.write(f"PRIVMSG #general :A7san Server Fl3alam{i}\r\n".encode())

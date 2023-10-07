@@ -410,7 +410,7 @@ void Server::runCommand(int clientFd, std::string command)
     cmds["pass"] = &Server::cmdPass; cmds["nick"] = &Server::cmdNick;
     cmds["user"] = &Server::cmdUser; cmds["topic"] = &Server::cmdTopic; cmds["invite"] = &Server::cmdInvite;
     cmds["kick"] = &Server::cmdKick; cmds["privmsg"] = &Server::cmdPrivMsg; cmds["join"] = &Server::cmdJoin;
-    cmds["leave"] = &Server::cmdLeave; cmds["bot"] = &Server::cmdBot; cmds["mode"] = &Server::cmdMode;
+    cmds["part"] = &Server::cmdLeave; cmds["bot"] = &Server::cmdBot; cmds["mode"] = &Server::cmdMode;
     std::map<std::string, void (Server::*)(int, std::string)>::iterator it;
     it = cmds.find(c);
     (it == cmds.end()) ? sendErrRep(421, clientFd, command, "", "") : (this->*it->second)(clientFd, cmdParam);
