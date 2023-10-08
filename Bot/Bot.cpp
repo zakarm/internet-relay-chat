@@ -4,10 +4,10 @@ Bot::Bot(int port, std::string address, std::string password)
 {
     this->port = port;
     this->password = password;
-    this->nickName = "Bot";
-    this->userName = "Bot";
-    this->realName = "Bot";
-    this->serverName = "Bot";
+    this->nickName = "bot";
+    this->userName = "bot";
+    this->realName = "bot";
+    this->serverName = "bot";
     this->lastSenderNick = "";
     this->socketLen = sizeof(this->clientAddr);
     this->clientSocket = socket(AF_INET, SOCK_STREAM, 0);
@@ -35,8 +35,11 @@ void Bot::connectToServer()
         std::cerr << RED << "Error: connect failed" << DEFAULT << std::endl;
         exit(EXIT_FAILURE);
     }
-    std::string pass = "PASS bot\r\n";
+    std::string pass = "PASS pass\r\n";
     send(this->clientSocket, pass.c_str(), pass.size(),0);
+    usleep(3000);
+    std::string hand = "*bot* *bot*\r\n";
+    send(this->clientSocket, hand.c_str(), hand.size(), 0);
     for (;;)
     {   
         char buffer[1024];
@@ -58,7 +61,6 @@ void Bot::runCommand(std::string data)
     std::string param, command, client, target, message;
     ss >> param >> std::ws >> command >> std::ws >> client >> std::ws >> target >> std::ws;
     std::getline(ss, message);
-    std::cout << param << " " << command << std::endl;
     if (param == ":irc.leet.com" && command == "401")
     {
         std::stringstream err;

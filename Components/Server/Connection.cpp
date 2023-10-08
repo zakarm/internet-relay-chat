@@ -81,7 +81,6 @@ void Server::requests(int indexClient)
         char buffer[1024];
         memset(buffer, 0, sizeof(buffer));
         int r = recv(this->pfds[indexClient].fd, buffer, sizeof(buffer) - 1, 0);
-        std::cout << __LINE__ << std::endl;
         std::string str;
         if (r <= 0)
             clientDisconnected(this->pfds[indexClient].fd);
@@ -133,7 +132,6 @@ void Server::multipleClients()
             std::pair<int, std::string> response = this->responses.front();
             this->responses.pop();
             send(response.first, response.second.c_str(), response.second.length(), 0);
-            // std::cout << "count :" << this->responses.size() << std::endl;
         }
     }
 }

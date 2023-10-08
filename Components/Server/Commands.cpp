@@ -20,7 +20,6 @@ void Server::authenticate(int clientFd)
 
 void Server::cmdPass(int clientFd, std::string data)
 {
-    
     std::stringstream err;
     if (data.empty())
         sendErrRep(461, clientFd, "PASS", "", "");
@@ -28,15 +27,6 @@ void Server::cmdPass(int clientFd, std::string data)
         sendErrRep(462, clientFd, "PASS", "", "");
     else if (!checkPass(data) && data != "bot")
         sendErrRep(464, clientFd, "PASS", "", "");
-    else if (data == "bot")
-    {
-        this->users[clientFd].setNickName("bot");
-        this->users[clientFd].setUserName("bot");
-        this->users[clientFd].setRealName("bot");
-        this->nicks.insert(std::make_pair("bot", clientFd));
-        this->users.find(clientFd)->second.setSetPass(true);
-        authenticate(clientFd);
-    }
     else
         this->users.find(clientFd)->second.setSetPass(true);
 }
@@ -63,9 +53,9 @@ void Server::cmdNick(int clientFd, std::string data)
     ss >> nickName;
     if (nickName.empty() || nickName == ":")
         sendErrRep(431, clientFd, "NICK", "", "");
-    else if (!validNick(nickName))
+    else if (!validNick(nickName) )
         sendErrRep(432, clientFd, "NICK", "", "");
-    else if (!checkDuplicateNick(nickName))
+    else if (!checkDuplicateNick(nickName) || nickName == "bot")
         sendErrRep(433, clientFd, "NICK", "", "");
     else
     {
@@ -393,6 +383,27 @@ void Server::cmdBot(int clientFd, std::string command)
     }
 }
 
+void Server::cmdAuthBot(int clientFd, std::string command)
+{
+    
+    if (command == "*bot*")
+    {
+        if (this->users.find(clientFd) != this->users.end())
+        {
+            if (!checkDuplicateNick("bot"))
+            {
+                sendErrRep(433, clientFd, "NICK", "", "");
+                return ;
+            }
+        }
+        this->users[clientFd].setNickName("bot");
+        this->users[clientFd].setUserName("bot");
+        this->users[clientFd].setRealName("bot");
+        this->nicks.insert(std::make_pair("bot", clientFd));
+        authenticate(clientFd);
+    }
+}
+
 void Server::runCommand(int clientFd, std::string command)
 {
     if (command.empty())
@@ -411,6 +422,7 @@ void Server::runCommand(int clientFd, std::string command)
     cmds["user"] = &Server::cmdUser; cmds["topic"] = &Server::cmdTopic; cmds["invite"] = &Server::cmdInvite;
     cmds["kick"] = &Server::cmdKick; cmds["privmsg"] = &Server::cmdPrivMsg; cmds["join"] = &Server::cmdJoin;
     cmds["part"] = &Server::cmdLeave; cmds["bot"] = &Server::cmdBot; cmds["mode"] = &Server::cmdMode;
+    cmds["*bot*"] = &Server::cmdAuthBot;
     std::map<std::string, void (Server::*)(int, std::string)>::iterator it;
     it = cmds.find(c);
     (it == cmds.end()) ? sendErrRep(421, clientFd, command, "", "") : (this->*it->second)(clientFd, cmdParam);
