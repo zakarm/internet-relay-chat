@@ -5,7 +5,7 @@ void sig_handler(int signum)
 {
     if (signum == SIGINT)
     {
-        std::cout << std::endl << Utils::getTime() << "CIH: SERVER TAYE7" << std::endl;
+        std::cout << std::endl << Utils::getTime() << " CIH: SERVER TAYE7" << std::endl;
         exit(EXIT_SUCCESS);
     }
 }
