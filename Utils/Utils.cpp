@@ -6,7 +6,7 @@
 /*   By: nbouljih <nbouljih@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/14 23:37:41 by zmrabet           #+#    #+#             */
-/*   Updated: 2023/10/03 18:47:44 by nbouljih         ###   ########.fr       */
+/*   Updated: 2023/10/08 10:07:58 by nbouljih         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,7 +86,7 @@ void Utils::loadErrorsReplies(std::map<int, std::string> &errRep, std::string ne
     errRep.insert(std::make_pair(443, " :is already on channel"));
     errRep.insert(std::make_pair(451, " :You have not registered"));
     errRep.insert(std::make_pair(461, " :Not enough parameters."));
-    errRep.insert(std::make_pair(462, " :You're already registered."));
+    errRep.insert(std::make_pair(462, " :You may not reregister."));
     errRep.insert(std::make_pair(464, " :Password incorrect"));
     errRep.insert(std::make_pair(465, " :You are banned from this server."));
     errRep.insert(std::make_pair(471, " :Cannot join channel (+l)"));

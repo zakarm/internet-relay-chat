@@ -81,41 +81,36 @@ bool Server::validNick(const std::string &data)
             return false;
     return true;
 }
-
+int Server::count(std::string str)
+{
+    int count = 0;
+    std::stringstream ss(str);
+    std::string word;
+    while (ss >> word)
+        count++;
+    return count;
+}
 bool Server::checkDuplicateUser(int clientFd)
 {
   if (users.find(clientFd)->second.getUserName().empty())
         return true;
     return false;
 }
-
-bool    Server::check_user(const std::string& username, const std::string& mode, const std::string& asterisk)
-{
-     if (username.empty() || mode.empty() || asterisk.empty() || username == "\"\"" || username == "''")
-        return false; 
-    if(mode[0] != '0' || mode.length() != 1)
-        return false;
-    if (asterisk[0] != '*' || asterisk.length() != 1)
-        return false;
-    if (username.length() == 2 && username[0] == '"' && username[1] == '"')
-        return false;
-    // if (realname[0] != ':')
-    //     return false;
-    return true;
-}
-
 int Server::userCheck(std::string data, int ft_clientFd)
 {
     std::stringstream s(data);
     std::string username, mode, asterisk;
     s >> username >> mode >> asterisk;
-    if (!check_user(username, mode, asterisk))
+    int wordCount = count(data);
+
+     if (username.empty() || username == "\"\"" || username == "''")
             return (461);
     else if (!checkDuplicateUser(ft_clientFd))
         return (462);
+    else if (wordCount != 4 && wordCount != 1)
+        return 461;
     return (1);
 }
-
 
 void Server::cmdUser(int clientFd, std::string data)
 {
@@ -130,23 +125,34 @@ void Server::cmdUser(int clientFd, std::string data)
         sendErrRep(err, clientFd, "USER", "", "");
         return ;
     }
-    else
+    else 
     {   
-        std::stringstream s(data);
-        std::string username, mode, asterisk, realname;
-        s >> username >> mode >> asterisk;
-        std::getline(s, realname);
-        std::string::iterator it = realname.begin();
-        while(it!= realname.end() && isspace(*it))
-            it++;
-        realname.erase(realname.begin(), it);
-        if (realname[0] == ':')
-            realname = realname.substr(1, realname.length() - 1);
-        this->users[clientFd].setRealName(realname);
-        this->users[clientFd].setUserName(username);
+        if (count(data) == 4 )
+        {
+            std::stringstream s(data);
+            std::string username, mode, asterisk, realname;
+            s >> username >> mode >> asterisk;
+            std::getline(s, realname);
+            std::string::iterator it = realname.begin();
+            while(it!= realname.end() && isspace(*it))
+                it++;
+            realname.erase(realname.begin(), it);
+            if (realname[0] == ':')
+                realname = realname.substr(1, realname.length() - 1);
+            this->users[clientFd].setRealName(realname);
+            this->users[clientFd].setUserName(username);
+        }
+        else if (count(data)  == 1)
+        {
+            std::stringstream s(data);
+            std::string username;
+            s >> username;
+            this->users[clientFd].setUserName(username);
+        }
+        authenticate(clientFd);
     }
-    authenticate(clientFd);
 }
+
 
 void Server::cmdTopic(int clientFd, std::string data)
 {
@@ -588,26 +594,23 @@ int count(std::string str)
         count++;
     return count;
 }
-void    Server::i_mode(std::string channel, std::string mode)
+void    Server::i_mode(std::string channel, std::string mode, int clientFd)
 {
+    (void)clientFd;
     Channel& chan = this->channels[channel];
+    std::string message;
     if (mode == "+i" )
+    {  
         chan.setMode(chan.INVITE_ONLY);
+        printModemessage(channel, "+i", clientFd);
+    }
     else if (mode == "-i")
+    {
         chan.unsetMode(chan.INVITE_ONLY);
+        printModemessage(channel, "-i", clientFd);
+    }
 }
-int covert_to_int(std::string str)
-{
-    std::string::iterator it = str.begin();
-    while (it != str.end() && isdigit(*it))
-        it++;
-    if (it != str.end())
-        return -1;
-    std::stringstream ss(str);
-    int limit;
-    ss >> limit;
-    return limit;
-}
+
 void Server::l_mode(int clientFd, std::string cmd)
 {
     std::string channel, mode, limit;
@@ -615,24 +618,26 @@ void Server::l_mode(int clientFd, std::string cmd)
     ss >> channel >> mode >> limit;
     int max_limit = 30;
     int l = 0;
-    (void)clientFd;
-    //to remove when error rep is done
     if (mode == "+l" || mode == "-l")
     {
         if (mode == "+l")
         { 
 
-            l = covert_to_int(limit);
+            l = std::atoi(limit.c_str());
             if (l <= 0 || l > max_limit)
                 sendErrRep(696, clientFd, "", channel, limit);
             else
             {
                 this->channels[channel].setLimit(l);
                 this->channels[channel].setMode(Channel::LIMIT);
+                printModemessage(channel, "+l", clientFd);
             }
         }
         else
+        {
             this->channels[channel].unsetMode(Channel::LIMIT);
+            printModemessage(channel, "-l", clientFd);
+        }
     }
 }
 std::string Server::set_operator(std::string channel, User *user, std::string mode)
@@ -682,13 +687,19 @@ void Server::o_mode(int clientFd, std::string cmd)
 }
 
 
-void Server::t_mode(std::string channel, std::string mode)
+void Server::t_mode(std::string channel, std::string mode, int clientFd)
 {
     Channel& chan = this->channels[channel];
     if (mode == "+t")
+    {
         chan.setMode(Channel::TOPIC_PROTECTED);
+        printModemessage(channel, "+t", clientFd);
+    }
     else if (mode == "-t")
+    {
         chan.unsetMode(Channel::TOPIC_PROTECTED);
+        printModemessage(channel, "-t", clientFd);
+    }
 }
 
 void    Server::cmdMode(int clientFd, std::string cmd)
@@ -716,22 +727,22 @@ void    Server::cmdMode(int clientFd, std::string cmd)
     else if (std::strlen(mode.c_str()) == 2)
     {   
         if (c == 2 && (cmd.find("+i") != std::string::npos || cmd.find("-i") != std::string::npos))
-            i_mode(channel, mode); //good
+            i_mode(channel, mode, clientFd);
         else if (c == 3 && (cmd.find("+o") != std::string::npos || cmd.find("-o") != std::string::npos))
             o_mode(clientFd, cmd);
         else if (c <= 3 && (cmd.find("+l") != std::string::npos || cmd.find("-l") != std::string::npos))
             l_mode(clientFd, cmd);
         else if (c == 2 && (cmd.find("+t") != std::string::npos || cmd.find("-t") != std::string::npos))
-            t_mode(channel, mode);
+            t_mode(channel, mode, clientFd);
         else if (c <= 3 && (cmd.find("+k") != std::string::npos || cmd.find("-k") != std::string::npos))
-                k_mode(cmd);
+            k_mode(cmd, clientFd);
         else
             sendErrRep(472, clientFd, "MODE", user.getNickName(), channel);
     }
     else
         sendErrRep(472, clientFd, "MODE", user.getNickName(), channel);
 }
-void    Server::k_mode(std::string cmd)
+void    Server::k_mode(std::string cmd, int clientFd)
 {
     std::string channel, mode, key;
     std::stringstream ss(cmd);
@@ -743,6 +754,7 @@ void    Server::k_mode(std::string cmd)
         {
             chan.setKey(key);
             chan.setMode(Channel::KEY);
+            printModemessage(channel, "+k", clientFd);
         }
         else if (mode == "-k")
         {
@@ -750,6 +762,7 @@ void    Server::k_mode(std::string cmd)
             {
                 chan.unsetMode(Channel::KEY);
                 chan.setKey(""); 
+                printModemessage(channel, "-k", clientFd);
             }
             else
                 sendErrRep(467, 0, "MODE", "", "");
@@ -759,9 +772,17 @@ void    Server::k_mode(std::string cmd)
         std::cout << "error 696" << std::endl;
         //set error 696
 }
+
+void   Server::printModemessage(std::string channel, std::string mode, int clientFd)
+{ 
+    Channel& chan = this->channels[channel];
+    std::string message = "MODE " + channel + " " + mode;
+    chan.broadcast(&(this->users.find(clientFd)->second), message, &(this->responses));
+    message = ":" + this->users[clientFd].getNickName() + "!~" + this->users[clientFd].getUserName() + "@" + this->users[clientFd].getHostName() + " " + message + "\r\n"; 
+    send(clientFd, message.c_str(), message.size(), 0);
+}
 ///////////////////////////////////////////
-// mode k are next to push           //
 // error to add 696                      //
 // to add mode response for empty mode   //
-// to modify user input sytax            //
+// fix cmdMode order                     //
 ////////////////////////////////////////// 
