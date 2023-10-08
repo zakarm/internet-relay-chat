@@ -87,11 +87,11 @@ void Channel::addUser(User *user)
     else
         this->users.insert(std::make_pair(user->getClientFd(), user));
     user->addChannel(this);
-    std::cout << "name :" << this->name << std::endl;
+    // std::cout << "name :" << this->name << std::endl;
     std::string message = ":" + user->getNickName() + "!~" + user->getUserName() + "@" + user->getHostName() + " JOIN " + this->getName() + "\r\n";
 
-    std::cout << "sending channel join messages " << std::endl;
-    std::cout << user->getNickName() << " has joined the channel " << this->name << std::endl;
+    // std::cout << "sending channel join messages " << std::endl;
+    // std::cout << user->getNickName() << " has joined the channel " << this->name << std::endl;
 
     send(user->getClientFd(), message.c_str(), message.size(), 0);
     message = ":irc.leet.com 332 " + user->getNickName() + " " + this->name + " :" + this->topic + "\r\n";

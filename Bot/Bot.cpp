@@ -36,7 +36,7 @@ void Bot::connectToServer()
         exit(EXIT_FAILURE);
     }
     std::string pass = "PASS bot\r\n";
-    send(this->clientSocket, pass.c_str(), pass.size(),0);
+
     for (;;)
     {   
         char buffer[1024];
