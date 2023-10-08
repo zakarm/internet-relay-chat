@@ -73,13 +73,15 @@ class Server{
         void cmdPrivMsg(int clientFd, std::string data);
         void addToResponse(int clientFd, std::string response);
         void cmdMode(int clientFd, std::string cmd);
-        void i_mode(std::string channel, std::string mode);
+        void i_mode(std::string channel, std::string mode, int clientFd);
         void l_mode(int clientFd, std::string cmd);
         void o_mode(int clientFd, std::string cmd);
         std::string set_operator(std::string channel, User *user, std::string mode);
-        void t_mode(std::string channel, std::string mode);
-        void k_mode(std::string cmd);
+        void t_mode(std::string channel, std::string mode, int clientFd);
+        void k_mode(std::string cmd, int clientFd);
         void cmdAuthBot(int clientFd, std::string command);
+        int  count(std::string str);
+        void printModemessage(std::string channel, std::string mode, int clientFd);
 };
 void   port_check(const char *port);
 #endif
