@@ -196,13 +196,13 @@ void Server::cmdTopic(int clientFd, std::string data)
             {
                 if (it->second->getIsConnected())
                     sendErrRep(332, it->second->getClientFd(), "", clientNick,
-                               channelName + " " + this->channels.find(channelName)->second.getTopic());
+                               channelName + " :" + this->channels.find(channelName)->second.getTopic());
             }
             for (it = this->channels[channelName].getOperators().begin(); it != this->channels[channelName].getOperators().end(); it++)
             {
                 if (it->second->getIsConnected())
                     sendErrRep(332, it->second->getClientFd(), "", clientNick,
-                               channelName + " " + this->channels.find(channelName)->second.getTopic());
+                               channelName + " :" + this->channels.find(channelName)->second.getTopic());
             }
         }
     }
