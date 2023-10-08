@@ -58,7 +58,7 @@ std::string Channel::getName() const { return this->name; }
 void Channel::setName(std::string name) { this->name = name; }
 std::string Channel::getKey() const { return this->key; }
 void Channel::setKey(std::string key) { this->key = key; }
-std::string Channel::getTopic() const { return this->topic; }
+std::string Channel::getTopic() const { return this->topic.empty() ? "No topic is set" : this->topic; }
 void Channel::setTopic(std::string topic) { this->topic = topic; }
 const std::map<int, User *> &Channel::getUsers() const { return this->users; }
 const std::map<int, User *> &Channel::getOperators() const { return this->operators; }
@@ -69,8 +69,26 @@ int Channel::getMemberCount() const { return this->memberCount; }
 void Channel::setMemberCount(int memberCount) { this->memberCount = memberCount; }
 int Channel::getMode() const { return this->mode; }
 void Channel::setMode(int mode) {this->mode |= mode;}
-
 void Channel::unsetMode(int mode) {this->mode &= ~mode; }
+
+std::string Channel::getModeString() const
+{
+    std::string modeString;
+    if (this->mode == 0)
+        return modeString;
+    modeString += "+";
+    if (this->mode & Channel::INVITE_ONLY)
+        modeString += "i";
+    if (this->mode & Channel::MODERATED)
+        modeString += "o";
+    if (this->mode & Channel::TOPIC_PROTECTED)
+        modeString += "t";
+    if (this->mode & Channel::KEY)
+        modeString += "k";
+    if (this->mode & Channel::LIMIT)
+        modeString += "l";
+    return modeString;
+}
 
 /**************************************************************/
 /*                         Functions                          */
@@ -87,14 +105,12 @@ void Channel::addUser(User *user)
     else
         this->users.insert(std::make_pair(user->getClientFd(), user));
     user->addChannel(this);
-    std::cout << "name :" << this->name << std::endl;
     std::string message = ":" + user->getNickName() + "!~" + user->getUserName() + "@" + user->getHostName() + " JOIN " + this->getName() + "\r\n";
-
-    std::cout << "sending channel join messages " << std::endl;
-    std::cout << user->getNickName() << " has joined the channel " << this->name << std::endl;
-
     send(user->getClientFd(), message.c_str(), message.size(), 0);
-    message = ":irc.leet.com 332 " + user->getNickName() + " " + this->name + " :" + this->topic + "\r\n";
+    if (!this->getModeString().empty())
+{    message = ":irc.leet.com 324 " + user->getNickName() + " " + this->name + " " + this->getModeString() + "\r\n";
+    send(user->getClientFd(), message.c_str(), message.size(), 0);}
+    message = ":irc.leet.com 332 " + user->getNickName() + " " + this->name + " :" + this->getTopic() + "\r\n";
     send(user->getClientFd(), message.c_str(), message.size(), 0);
     this->memberCount++;
 }
@@ -209,50 +225,24 @@ bool Channel::isOperator(int clientFd)
 {
     return this->operators.find(clientFd) != this->operators.end();
 }
+
 //to hcange later
-void Channel::o_plus(std::string nick , std::queue<std::pair<int , std::string> > *queue)
+
+void Channel::changeOpMode(User *user, int mode)
 {
-    (void) queue;
-    std::map<int, User*>::iterator it;
-    for (it = users.begin(); it != users.end(); ++it)
+    if (mode == 1)
     {
-        if (it->second->getNickName() == nick)
-        {
-            addOperator(it->second);
-            users.erase(it);
-            break;
-        }
+        this->operators.insert(std::make_pair(user->getClientFd(), user));
+        this->users.erase(user->getClientFd());
     }
-    // std::string message;
-    // message = "MODE " + this->name + " +o " + nick + "\r\n";
-    // // this->broadcast(it->second, message, queue);
-}
-void Channel::o_minus(std::string nick , std::queue<std::pair<int , std::string> > *queue)
-{
-    (void) queue;
-    std::map<int, User*>::iterator it;
-    for (it = operators.begin(); it != operators.end(); ++it)
+    else if (mode == 0)
     {
-        if (it->second->getNickName() == nick)
-        {
-            this->users.insert(std::make_pair(it->second->getClientFd(), it->second));
-            removeOperator(it->first);
-            break;
-        }
-    }
-    // std::string message;
-    // message = "MODE " + this->name + " +o " + nick + "\r\n";
-    // this->broadcast(it->second, message, queue);
-}
-void  Channel::removeOperator(int clientFd)
-{
-    std::map<int, User *>::iterator it = this->operators.find(clientFd);
-    if (it != this->operators.end())
-    {
-        this->operators.erase(it);
-        this->memberCount--;
+        this->users.insert(std::make_pair(user->getClientFd(), user));
+        this->operators.erase(user->getClientFd());
     }
 }
+
+
 void    Channel::unsetKey()
 {
     this->key = "";

@@ -1,5 +1,22 @@
-1) :apollo!zmrabet@127.0.0.1 PRIVMSG bot ::hello (format kayn jouj no9at fjouj no9at kaytzado mn limechat)
-2) khas tzad check fnickname tahed my9d ysmi rasso <bot>
-3) s3ib ndir chi haja d anonym message khas darori privmsg ykon 3ndha prototype 3la hsab limechat wla antkhwro (drtha walkin liemchat mkhwr)
-4) PRIVMSG #general :chrbi wdouwchi14 -> chrbi kydi gha hed space
+#Nohaila
+    file: channel.cpp : issue to fix
+        - what if there's no operators left (mode -o in a channel with only one operator)
+    file: commands.cpp
+        - add replies to modes (all excepte o)
+        - l_mode WTF is conver_to_int for???
+        - fix this in cmdMode function:
+                    else if (mode.empty())
+                        std::cout << "in progress" << std::endl;
+                    ...
+                    ...
+        - cmd_user should accept 1 or 4 parameters
+        - what if there was no more operators left in the channel (mode -o in a channel with only one operator)
 
+#zakaria
+    file: commands.cpp : issue to fix
+        - TOPIC can't take spaces whitout ":" (TOPIC #chan :topic)
+        - INVITE msg is not right
+
+#mario
+    file: commands.cpp 
+        - send mode to new joiner 
