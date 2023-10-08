@@ -189,7 +189,7 @@ void Server::cmdTopic(int clientFd, std::string data)
         }
         else
         {
-            if (this->channels.find(channelName)->second.getMode() == 2 && !this->channels.find(channelName)->second.isOperator(clientFd))
+            if (this->channels.find(channelName)->second.getMode() & Channel::TOPIC_PROTECTED && !this->channels.find(channelName)->second.isOperator(clientFd))
             {
                 sendErrRep(482, clientFd, "TOPIC", this->users.find(clientFd)->second.getNickName(), channelName);
                 return;
@@ -355,8 +355,8 @@ void Server::cmdPrivMsg(int clientFd, std::string data)
                     sendErrRep(442, clientFd, "PRIVMSG", this->users.find(clientFd)->second.getNickName(), target); 
                     continue;
                 }
-                std::cout << "target: " << target << std::endl;
-                message = target + " " + message;
+                // std::cout << "target: " << target << std::endl;
+                message = target + " :" + message;
                 if (this->channels.find(target) != this->channels.end())
                     this->channels[target].broadcast(&(this->users.find(clientFd)->second),prefix + message, &(this->responses), true);
                 else
@@ -492,10 +492,10 @@ void Server::cmdLeave(int clientFd, std::string data)
             send(clientFd, message.c_str(), message.size(), 0);
             this->channels[channel].broadcast(&(this->users.find(clientFd)->second), "PART " + channel + " :" + message, &(this->responses), true);
 
-            std::cout << "channel size: " << this->channels[channel].getMemberCount() << std::endl;
-            std::cout << this->users.find(clientFd)->second.getNickName() << " left " << channel << std::endl;
+            // std::cout << "channel size: " << this->channels[channel].getMemberCount() << std::endl;
+            // std::cout << this->users.find(clientFd)->second.getNickName() << " left " << channel << std::endl;
             if (this->channels.find(channel) != this->channels.end() && this->channels[channel].getMemberCount() == 0)
-                {this->channels.erase(channel); std::cout << "channel erased" << std::endl;}
+                this->channels.erase(channel);
         }
     }
 }
@@ -540,23 +540,11 @@ void Server::cmdJoin(int clientFd, std::string data)
         if (this->channels.find(channel) == this->channels.end())
         {
             this->channels.insert(std::make_pair(channel, Channel(channel)));
-            std::cout << "channel mode:" << this->channels[channel].getMode() << std::endl;
+            // std::cout << "channel mode:" << this->channels[channel].getMode() << std::endl;
             // this->channels[channel].setMode(Channel::INVITE_ONLY);
         }
         else
         {   
-            //********* Optimization ***********
-            // User& user = this->users.find(clientFd)->second;
-            // const std::string& nickName = user.getNickName();
-            // Channel& channelObj = this->channels[channel];
-            // if (user.isInChannel(channel))
-            //     sendErrRep(443, clientFd, "JOIN", nickName, channel);
-            // else if ((channelObj.getMode() & Channel::INVITE_ONLY) && !channelObj.isInvited(nickName))
-            //     sendErrRep(473, clientFd, "", nickName, channel);
-            // else if ((channelObj.getMode() & Channel::KEY) && (channelObj.getKey() != password))
-            //     sendErrRep(475, clientFd, "", nickName, channel);
-            // else if ((channelObj.getMode() & Channel::LIMIT) && (channelObj.getMemberCount() >= channelObj.getLimit()))
-            //     sendErrRep(471, clientFd, "", nickName, channel); 
             if (this->users.find(clientFd)->second.isInChannel(channel))
             {
                 sendErrRep(443, clientFd, "JOIN", this->users.find(clientFd)->second.getNickName(), channel);
@@ -644,7 +632,7 @@ void Server::set_operator(std::string& channel, std::string& nick, std::string& 
     std::map<std::string, Channel>::iterator channelIt = channels.find(channel);
     if (mode == "+o")
         channelIt->second.o_plus(nick , &(this->responses));
-    else if (mode == "-o")
+    else if (mode == "-o") /// ?????????? what if there was no operators left
         channelIt->second.o_minus(nick, &(this->responses));
 }
 
@@ -670,11 +658,11 @@ void Server::o_mode(int clientFd, std::string cmd)
     set_operator(channel, nick, mode);
     std::string message;
     if (mode == "+o")
-        message = "MODE " + channel + " +o " + nick + "\r\n";
+        message = "MODE " + channel + " +o " + nick;
     else
-        message = "MODE " + channel + " -o " + nick + "\r\n";
-    this->channels[channel].broadcast(&(this->users.find(clientFd)->second), message, &(this->responses), true);
-    message += ":" + this->users[clientFd].getNickName() + "!~" + this->users[clientFd].getUserName() + "@" + this->users[clientFd].getHostName() + " " + message;
+        message = "MODE " + channel + " -o " + nick;
+    this->channels[channel].broadcast(&(this->users.find(clientFd)->second), message, &(this->responses));
+    message = ":" + this->users[clientFd].getNickName() + "!~" + this->users[clientFd].getUserName() + "@" + this->users[clientFd].getHostName() + " " + message + "\r\n";
     send(clientFd, message.c_str(), message.size(), 0);
 }
 void Server::t_mode(std::string& channel, std::string& mode)
@@ -685,7 +673,7 @@ void Server::t_mode(std::string& channel, std::string& mode)
     else if (mode == "-t")
         chan.unsetMode(Channel::TOPIC_PROTECTED);
 }
-// void    k
+
 void    Server::cmdMode(int clientFd, std::string cmd)
 {
     int c = count(cmd);
