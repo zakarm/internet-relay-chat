@@ -292,6 +292,8 @@ void Server::cmdKick(int clientFd, std::string data)
                             for (it = this->channels[channelName].getOperators().begin(); it != this->channels[channelName].getOperators().end(); it++)
                                 send(it->first, rep.str().c_str(), rep.str().size(), 0);
                             this->users.find(target)->second.leaveChannel(&(this->channels.find(channelName)->second));
+                            if (this->channels.find(channelName) != this->channels.end() && this->channels[channelName].getMemberCount() == 0)
+                                this->channels.erase(channelName);
                         }
                     }
                     else
