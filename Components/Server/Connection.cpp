@@ -82,10 +82,7 @@ void Server::requests(int indexClient)
         memset(buffer, 0, sizeof(buffer));
         int r = recv(this->pfds[indexClient].fd, buffer, sizeof(buffer) - 1, 0);
         if (r > 512)
-        {
             std::cout << ":irc.leet.com 421 :Length exceeded" << std::endl;
-            // send(this->pfds[indexClient].fd, rep.str().c_str(), rep.str().size(), 0);
-        }
         else if (r <= 0)
             clientDisconnected(this->pfds[indexClient].fd);
         else

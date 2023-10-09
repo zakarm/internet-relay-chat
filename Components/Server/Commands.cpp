@@ -102,7 +102,6 @@ int Server::userCheck(std::string data, int ft_clientFd)
     std::string username, mode, asterisk;
     s >> username >> mode >> asterisk;
     int wordCount = count(data);
-
      if (username.empty() || username == "\"\"" || username == "''")
             return (461);
     else if (!checkDuplicateUser(ft_clientFd))
@@ -353,7 +352,6 @@ void Server::cmdPrivMsg(int clientFd, std::string data)
                     sendErrRep(442, clientFd, "PRIVMSG", this->users.find(clientFd)->second.getNickName(), target); 
                     continue;
                 }
-                // std::cout << "target: " << target << std::endl;
                 message = target + " :" + message;
                 if (this->channels.find(target) != this->channels.end())
                     this->channels[target].broadcast(&(this->users.find(clientFd)->second),prefix + message, &(this->responses), true);
