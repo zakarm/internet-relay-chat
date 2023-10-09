@@ -11,11 +11,12 @@
                     ...
         - cmd_user should accept 1 or 4 parameters
         - what if there was no more operators left in the channel (mode -o in a channel with only one operator)
+        user mab9atch khdama fch kntry ntocnnecta flimechat makatkhdmch
 
 #zakaria
-    file: commands.cpp : issue to fix
-        - TOPIC can't take spaces whitout ":" (TOPIC #chan :topic)
-        - INVITE msg is not right
+    file: commands.cpp : issue to fix -> done
+        - TOPIC can't take spaces whitout ":" (TOPIC #chan :topic) -> done
+        - INVITE msg is not right -> done
 
 #mario
     file: commands.cpp 
