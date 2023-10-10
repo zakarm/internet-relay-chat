@@ -767,8 +767,7 @@ void    Server::k_mode(std::string cmd, int clientFd)
         }
     }
     else
-        std::cout << "error 696" << std::endl;
-        //set error 696
+        sendErrRep(696, clientFd, "MODE", "", "");
 }
 
 void   Server::printModemessage(std::string channel, std::string mode, int clientFd)

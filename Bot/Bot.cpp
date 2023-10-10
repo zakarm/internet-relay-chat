@@ -1,5 +1,9 @@
 #include "Bot.hpp"
 
+/**************************************************************/
+/*                        Constructors                        */
+/**************************************************************/
+
 Bot::Bot(int port, std::string address, std::string password)
 {
     this->port = port;
