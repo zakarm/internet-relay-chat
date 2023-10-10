@@ -44,6 +44,16 @@ void Server::clientDisconnected(int clientFd)
         this->users[clientFd].leaveAllChannels(&(this->responses));
         this->users.erase(clientFd);
     }
+    std::queue<std::pair<int, std::string> > tmp = this->responses;
+    std::queue<std::pair<int, std::string> > updated;
+    while (!tmp.empty())
+    {
+        std::pair<int, std::string> p = tmp.front();
+        if (p.first != clientFd)
+            updated.push(p);
+        tmp.pop();
+    }
+    this->responses = updated;
     for (std::vector<struct pollfd>::iterator it = this->pfds.begin(); it != this->pfds.end(); it++)
     {
         if (it->fd == clientFd)
@@ -82,7 +92,7 @@ void Server::requests(int indexClient)
         memset(buffer, 0, sizeof(buffer));
         int r = recv(this->pfds[indexClient].fd, buffer, sizeof(buffer) - 1, 0);
         if (r > 512)
-            std::cout << ":irc.leet.com 421 :Length exceeded" << std::endl;
+            std::cout << Utils::getTime() << " :Length exceeded" << std::endl;
         else if (r <= 0)
             clientDisconnected(this->pfds[indexClient].fd);
         else
