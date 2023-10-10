@@ -108,11 +108,14 @@ void Channel::addUser(User *user)
     std::string message = ":" + user->getNickName() + "!~" + user->getUserName() + "@" + user->getHostName() + " JOIN " + this->getName() + "\r\n";
     send(user->getClientFd(), message.c_str(), message.size(), 0);
     if (!this->getModeString().empty())
-{    message = ":irc.leet.com 324 " + user->getNickName() + " " + this->name + " " + this->getModeString() + "\r\n";
-    send(user->getClientFd(), message.c_str(), message.size(), 0);}
+    {   
+        message = ":irc.leet.com 324 " + user->getNickName() + " " + this->name + " " + this->getModeString() + "\r\n";
+        send(user->getClientFd(), message.c_str(), message.size(), 0);
+    }
     message = ":irc.leet.com 332 " + user->getNickName() + " " + this->name + " :" + this->getTopic() + "\r\n";
     send(user->getClientFd(), message.c_str(), message.size(), 0);
     this->memberCount++;
+    this->removeInvited(user->getNickName());
 }
 
 bool Channel::isInvited(std::string nickName)

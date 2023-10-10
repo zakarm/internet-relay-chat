@@ -20,6 +20,8 @@ int main(int argc, char *argv[])
             port_check(argv[1]);
             unsigned int port = atoi(argv[1]); // use iostream to check if it's a number
             std::string password = argv[2]; 
+            if (password.empty())
+                throw std::runtime_error("Error : invalid password");
             Server s(port, password);
             s.runServer();
         }
