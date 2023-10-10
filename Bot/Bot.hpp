@@ -1,6 +1,7 @@
+#ifndef BOT_HPP
+#define BOT_HPP
 #include "../Components/Components.hpp"
 #include "../Utils/Utils.hpp"
-
 class Bot
 {
     private :
@@ -21,3 +22,4 @@ class Bot
         void connectToServer();
         void runCommand(std::string data);
 };
+#endif
