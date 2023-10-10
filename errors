@@ -16,8 +16,8 @@
 #zakaria
     file: commands.cpp : issue to fix -> done
         - TOPIC can't take spaces whitout ":" (TOPIC #chan :topic) -> done
-        - INVITE msg is not right -> done
+        - INVITE msg is not right -> done ->>>>> still not working
 
 #mario
     file: commands.cpp 
-        - send mode to new joiner 
+        - send mode to new joiner -> done
