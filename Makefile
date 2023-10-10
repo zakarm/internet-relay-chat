@@ -51,10 +51,8 @@ BANNER     =    "\t\t$(V)██$(W)╗ $(V)██████$(W)╗   $(V)█�
 				"\t\t╚═╝ ╚═╝  ╚═╝  ╚═════╝\n"
 
 all : $(NAME)
-	./ircserv 6666 pass
 
 bonus : $(NAME_BONUS)
-	./botirc 6666 127.0.0.1 bot
 
 $(NAME) : $(OBJ)
 	@echo "\n"

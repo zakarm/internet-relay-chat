@@ -1,5 +1,7 @@
 import asyncio
-MAX_SOCKETS = 10
+import signal
+
+MAX_SOCKETS = 20
 DELAY = 0.01
 
 async def connect_socket(i):
@@ -10,7 +12,7 @@ async def connect_socket(i):
         await asyncio.sleep(DELAY)
         writer.write(f"NICK user{i}\r\n".encode())
         await asyncio.sleep(DELAY)
-        writer.write(f"USER a{i} 0 *\r\n".encode())
+        writer.write(f"USER a{i} 0 * a\r\n".encode())
         await asyncio.sleep(DELAY)
         writer.write("JOIN #general\r\n".encode())
         await asyncio.sleep(DELAY)
@@ -25,7 +27,9 @@ async def connect_socket(i):
             await asyncio.sleep(DELAY)
             writer.write(f"PRIVMSG #general :A7san Server Fl3alam{i}\r\n".encode())
             await writer.drain()
-            
+
+    except asyncio.CancelledError:
+        print(f"Task {i} was cancelled.")
     except Exception as e:
         print(f"Error: {e}")
 
@@ -34,7 +38,16 @@ async def main():
     for i in range(MAX_SOCKETS):
         task = asyncio.create_task(connect_socket(i))
         tasks.append(task)
-    await asyncio.gather(*tasks)
+    try:
+        await asyncio.gather(*tasks)
+    except asyncio.CancelledError:
+        print("Main task was cancelled.")
+
+def signal_handler(signal, frame):
+    print("Ctrl+C pressed. Cleaning up...")
+    for task in asyncio.all_tasks():
+        task.cancel()
 
 if __name__ == "__main__":
+    signal.signal(signal.SIGINT, signal_handler)
     asyncio.run(main())
