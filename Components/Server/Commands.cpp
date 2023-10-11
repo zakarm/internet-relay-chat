@@ -45,7 +45,7 @@ void Server::cmdNick(int clientFd, std::string data)
 {
     if (!this->users[clientFd].getSetPass())
     {
-        sendErrRep(451, clientFd, "", "", "");
+        sendErrRep(451, clientFd, "NICK", "", "");
         return;
     }
     std::stringstream ss(data);
@@ -115,7 +115,7 @@ void Server::cmdUser(int clientFd, std::string data)
 {
     if (!this->users[clientFd].getSetPass())
     {
-        sendErrRep(451, clientFd, "", "", "");
+        sendErrRep(451, clientFd, "USER", "", "");
         return;
     }
     int err = userCheck(data, clientFd);
@@ -232,20 +232,17 @@ void Server::cmdInvite(int clientFd, std::string data)
             sendErrRep(403, clientFd, "INVITE", this->users.find(clientFd)->second.getNickName(), channelName);
         else if (!this->users.find(clientFd)->second.isInChannel(channelName))
             sendErrRep(442, clientFd, "INVITE", this->users.find(clientFd)->second.getNickName(), channelName);
-        else if (this->channels.find(channelName)->second.getMode() == 1 && !this->channels.find(channelName)->second.isOperator(clientFd))
+        else if (this->channels.find(channelName)->second.getMode() & Channel::INVITE_ONLY && !this->channels.find(channelName)->second.isOperator(clientFd))
             sendErrRep(482, clientFd, "INVITE", this->users.find(clientFd)->second.getNickName(), channelName);
         else
         {
             int target = getUserFdByNick(nickname);
-            if (target != -1)
+            if (target > 0 && this->users.find(target)->second.isInChannel(channelName))
+                sendErrRep(443, clientFd, "INVITE", this->users.find(clientFd)->second.getNickName() + " " + nickname, channelName);
+            else
             {
-                if (this->users.find(target)->second.isInChannel(channelName))
-                    sendErrRep(443, clientFd, "INVITE", this->users.find(clientFd)->second.getNickName() + " " + nickname, channelName);
-                else
-                {
-                    this->channels.find(channelName)->second.addInvited(nickname);
-                    sendErrRep(341, clientFd, "INVITE", this->users.find(clientFd)->second.getNickName() + " " + nickname, channelName);
-                }
+                this->channels.find(channelName)->second.addInvited(nickname);
+                sendErrRep(341, clientFd, "INVITE", this->users.find(clientFd)->second.getNickName() + " " + nickname, channelName);
             }
         }
     }

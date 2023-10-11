@@ -1,16 +1,16 @@
 import asyncio
 import signal
 
-MAX_SOCKETS = 20
+MAX_SOCKETS = 100
 DELAY = 0.01
 
 async def connect_socket(i):
     try:
-        reader, writer = await asyncio.open_connection("127.0.0.1", 6666)
+        reader, writer = await asyncio.open_connection("127.0.0.1", 6667)
         print("Connected!")
         writer.write("PASS pass\r\n".encode())
         await asyncio.sleep(DELAY)
-        writer.write(f"NICK user{i}\r\n".encode())
+        writer.write(f"NICK users{i}\r\n".encode())
         await asyncio.sleep(DELAY)
         writer.write(f"USER a{i} 0 * a\r\n".encode())
         await asyncio.sleep(DELAY)
