@@ -464,8 +464,9 @@ void Server::sendErrRep(int code, int clientFd, std::string command, std::string
     else if (code == 333)   ss << ":irc.leet.com 333 " << s1 << " " << s2 << "\r\n";
     else if (code == 411 || code == 412)   ss << ":irc.leet.com " << code << command << this->errRep.find(code)->second  << "\r\n";
     else if (code == 401)   ss << ":irc.leet.com 401 " << s1 << " " << s2 << this->errRep.find(code)->second  << "\r\n";
-    else if (code == 650)   ss << ":irc.leet.com 650 " << this->errRep.find(650)->second << "\r\n";
-    else if (code == 472)   ss << ":irc.leet.com 472 " << this->errRep.find(472)->second << "\r\n";
+    else if (code == 650)   ss << ":irc.leet.com 650 " << command <<this->errRep.find(650)->second << "\r\n";
+    else if (code == 472)   ss << ":irc.leet.com 472 " << command << " " << s1 << this->errRep.find(472)->second << "\r\n";
+    else if (code == 467)   ss << ":irc.leet.com 467 " << command << " " << s1 << " " << s2 << this->errRep.find(467)->second << "\r\n";
     else if (code == 473 || code == 475 || code == 471)
         ss << ":irc.leet.com " << code << " " << s1 << " " << s2  << this->errRep.find(code)->second << "\r\n";
     else if (code == 696) 
@@ -596,9 +597,7 @@ int count(std::string str)
 }
 void    Server::i_mode(std::string channel, std::string mode, int clientFd)
 {
-    (void)clientFd;
     Channel& chan = this->channels[channel];
-    std::string message;
     if (mode == "+i" )
     {  
         chan.setMode(chan.INVITE_ONLY);
@@ -618,6 +617,12 @@ void Server::l_mode(int clientFd, std::string cmd)
     ss >> channel >> mode >> limit;
     int max_limit = 30;
     int l = 0;
+    if (limit.empty() && mode == "+l")
+    {
+        std::string message = ":irc.leet.com 696 " + this->users[clientFd].getNickName() + " " + channel + " l * You must specify a parameter for the limit mode. Syntax: <limit>.\r\n";
+        send(clientFd, message.c_str(), message.size(), 0);
+        return; 
+    }
     if (mode == "+l" || mode == "-l")
     {
         if (mode == "+l")
@@ -625,7 +630,10 @@ void Server::l_mode(int clientFd, std::string cmd)
 
             l = std::atoi(limit.c_str());
             if (l <= 0 || l > max_limit)
-                sendErrRep(696, clientFd, "", channel, limit);
+            {
+                std::string message = ":irc.leet.com 696 " + this->users[clientFd].getNickName() + "  " + channel + " l " + limit + " :Invalid limit mode parameter. Syntax: <limit>.\r\n";
+                send(clientFd, message.c_str(), message.size(), 0);
+            }
             else
             {
                 this->channels[channel].setLimit(l);
@@ -633,7 +641,7 @@ void Server::l_mode(int clientFd, std::string cmd)
                 printModemessage(channel, "+l", clientFd);
             }
         }
-        else
+        else if (mode == "-l" && this->channels[channel].getMode() & Channel::LIMIT)
         {
             this->channels[channel].unsetMode(Channel::LIMIT);
             printModemessage(channel, "-l", clientFd);
@@ -666,7 +674,8 @@ void Server::o_mode(int clientFd, std::string cmd)
     User& user = this->users[clientFd];
     if (nick.empty())
     {
-        sendErrRep(461, clientFd, "MODE", "", "");
+        std::string message = ":irc.leet.com 696 " +this->users[clientFd].getNickName() + " "+ channel + " o * You must specify a parameter for the op mode. Syntax: <nick>.\r\n";
+        send(clientFd, message.c_str(), message.size(), 0);
         return;
     }
     int targetFd = getUserFdByNick(nick);
@@ -702,6 +711,15 @@ void Server::t_mode(std::string channel, std::string mode, int clientFd)
     }
 }
 
+void    Server::emptyMode(std::string channel, int clientFd)
+{
+    if (this->channels[channel].getMode() != 0)
+    {
+        std::string msg1 = ":irc.leet.com 324 " + this->users[clientFd].getNickName() + " " + channel + " " + this->channels[channel].getModeString() + "\r\n";
+        send(clientFd, msg1.c_str(), msg1.size(), 0);
+    }
+}
+
 void    Server::cmdMode(int clientFd, std::string cmd)
 {
     int c = count(cmd);
@@ -712,41 +730,41 @@ void    Server::cmdMode(int clientFd, std::string cmd)
     Channel& chan = this->channels[channel];
     if (cmd.empty())
         sendErrRep(650, clientFd, "MODE", "", "");
-    else if (mode.empty())
-        std::cout << "in progress" << std::endl;
-    else if (channel.empty())
-        sendErrRep(461, clientFd, "MODE", "", "");
-    else if (!user.getIsConnected())
-        sendErrRep(451, clientFd, "MODE", "", "");
     else if (chan.getName() != channel)
-        sendErrRep(403, clientFd, "MODE", user.getNickName(), channel);
+        sendErrRep(403, clientFd, "MODE", "" , channel);
+    else if (mode.empty())
+        emptyMode(channel, clientFd);
     else if (!user.isInChannel(channel))
         sendErrRep(442, clientFd, "MODE", user.getNickName(), channel);
+    else if (!user.getIsConnected())
+        sendErrRep(451, clientFd, "MODE", "", "");
     else if (!chan.isOperator(clientFd))
         sendErrRep(482, clientFd, "MODE", user.getNickName(), channel);
     else if (std::strlen(mode.c_str()) == 2)
     {   
         if (c == 2 && (cmd.find("+i") != std::string::npos || cmd.find("-i") != std::string::npos))
             i_mode(channel, mode, clientFd);
-        else if (c == 3 && (cmd.find("+o") != std::string::npos || cmd.find("-o") != std::string::npos))
+        else if (c <= 3 && (cmd.find("+o") != std::string::npos || cmd.find("-o") != std::string::npos))
             o_mode(clientFd, cmd);
-        else if (c <= 3 && (cmd.find("+l") != std::string::npos || cmd.find("-l") != std::string::npos))
+        else if (c >= 2 && (cmd.find("+l") != std::string::npos || cmd.find("-l") != std::string::npos))
             l_mode(clientFd, cmd);
         else if (c == 2 && (cmd.find("+t") != std::string::npos || cmd.find("-t") != std::string::npos))
             t_mode(channel, mode, clientFd);
-        else if (c <= 3 && (cmd.find("+k") != std::string::npos || cmd.find("-k") != std::string::npos))
+        else if (c >= 2 && (cmd.find("+k") != std::string::npos || cmd.find("-k") != std::string::npos))
             k_mode(cmd, clientFd);
         else
-            sendErrRep(472, clientFd, "MODE", user.getNickName(), channel);
+            sendErrRep(472, clientFd, "MODE", mode , channel);
     }
     else
-        sendErrRep(472, clientFd, "MODE", user.getNickName(), channel);
+        sendErrRep(472, clientFd, "MODE", mode, channel);
 }
+
 void    Server::k_mode(std::string cmd, int clientFd)
 {
     std::string channel, mode, key;
     std::stringstream ss(cmd);
-    ss >> channel >> mode >> key;
+    ss >> channel >> mode;
+    std::getline(ss, key);
     Channel& chan = this->channels[channel];
     if (!key.empty())
     {
@@ -756,20 +774,23 @@ void    Server::k_mode(std::string cmd, int clientFd)
             chan.setMode(Channel::KEY);
             printModemessage(channel, "+k", clientFd);
         }
-        else if (mode == "-k")
+        else if (mode == "-k" && chan.getMode() & Channel::KEY)
         {
-            if (chan.getKey() == key)
+            if (std::strcmp(chan.getKey().c_str(), key.c_str()) == 0)
             {
                 chan.unsetMode(Channel::KEY);
                 chan.setKey(""); 
                 printModemessage(channel, "-k", clientFd);
             }
             else
-                sendErrRep(467, 0, "MODE", "", "");
+                sendErrRep(467, clientFd, "MODE", "", channel);
         }
     }
     else
-        sendErrRep(696, clientFd, "MODE", "", "");
+    {
+        std::string message = ":irc.leet.com 696 " + this->users[clientFd].getNickName() + " " + channel + " k * You must specify a parameter for the key mode. Syntax: <key>.\r\n";
+        send(clientFd, message.c_str(), message.size(), 0);
+    }
 }
 
 void   Server::printModemessage(std::string channel, std::string mode, int clientFd)
@@ -780,8 +801,3 @@ void   Server::printModemessage(std::string channel, std::string mode, int clien
     message = ":" + this->users[clientFd].getNickName() + "!~" + this->users[clientFd].getUserName() + "@" + this->users[clientFd].getHostName() + " " + message + "\r\n"; 
     send(clientFd, message.c_str(), message.size(), 0);
 }
-///////////////////////////////////////////
-// error to add 696                      //
-// to add mode response for empty mode   //
-// fix cmdMode order                     //
-////////////////////////////////////////// 

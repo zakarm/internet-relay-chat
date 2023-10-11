@@ -82,6 +82,7 @@ class Server{
         void cmdAuthBot(int clientFd, std::string command);
         int  count(std::string str);
         void printModemessage(std::string channel, std::string mode, int clientFd);
+        void emptyMode(std::string channel, int clientFd);
 };
 void   port_check(const char *port);
 #endif
