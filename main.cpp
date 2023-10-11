@@ -19,7 +19,7 @@ int main(int argc, char *argv[])
         try
         {
             port_check(argv[1]);
-            unsigned int port = atoi(argv[1]); // use iostream to check if it's a number
+            unsigned int port = atoi(argv[1]);
             std::string password = argv[2]; 
             if (password.empty())
                 throw std::runtime_error("Error : invalid password");

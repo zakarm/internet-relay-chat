@@ -9,7 +9,7 @@
 #define DEFAULT "\033[39m"
 #endif
 
-#define POLL_TIMEOUT 10
+#define POLL_TIMEOUT 0
 
 #ifdef DEBUG_MODE
 # define DEBUG_MSG(msg) std::cout << "Debug: " << msg
@@ -33,4 +33,12 @@
 #include <signal.h>
 #include <algorithm>
 #include <cstring>
+
+typedef struct s_message
+{
+    int channelId;
+    uintptr_t client;
+    std::string message;
+} t_message;
+
 #endif
