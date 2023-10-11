@@ -361,7 +361,12 @@ void Server::cmdPrivMsg(int clientFd, std::string data)
                 if (this->nicks.find(target) == this->nicks.end())
                     sendErrRep(401, clientFd, "PRIVMSG", this->users.find(clientFd)->second.getNickName(), target);
                 else
-                    this->addToResponse(this->getUserFdByNick(target), ":" + this->users[clientFd].getNickName()+ "!" + this->users[clientFd].getUserName() + "@" + this->users[clientFd].getHostName() + " PRIVMSG " + target + " :" + message + "\r\n");
+                {
+                    std::string msg;
+                    msg = ":" + this->users[clientFd].getNickName()+ "!" + this->users[clientFd].getUserName() + "@" + this->users[clientFd].getHostName() + " PRIVMSG " + target + " :" + message + "\r\n";
+                    send(this->nicks[target], msg.c_str(), msg.size(), 0);
+                }
+                    // this->addToResponse(this->getUserFdByNick(target), ":" + this->users[clientFd].getNickName()+ "!" + this->users[clientFd].getUserName() + "@" + this->users[clientFd].getHostName() + " PRIVMSG " + target + " :" + message + "\r\n");
             }
         }
     }

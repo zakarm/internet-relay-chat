@@ -44,16 +44,7 @@ void Server::clientDisconnected(int clientFd)
         this->users[clientFd].leaveAllChannels(&(this->responses));
         this->users.erase(clientFd);
     }
-    std::queue<std::pair<int, std::string> > tmp = this->responses;
-    std::queue<std::pair<int, std::string> > updated;
-    while (!tmp.empty())
-    {
-        std::pair<int, std::string> p = tmp.front();
-        if (p.first != clientFd)
-            updated.push(p);
-        tmp.pop();
-    }
-    this->responses = updated;
+
     for (std::vector<struct pollfd>::iterator it = this->pfds.begin(); it != this->pfds.end(); it++)
     {
         if (it->fd == clientFd)
@@ -98,12 +89,6 @@ void Server::requests(int indexClient)
         else
             runCommand(this->pfds[indexClient].fd, joinBuffers(indexClient, buffer));
     }
-    if (!this->responses.empty())
-    {
-        std::pair<int, std::string> response = this->responses.front();
-        this->responses.pop();
-        send(response.first, response.second.c_str(), response.second.length(), 0);
-    }
 }
 
 void Server::acceptAndDecline()
@@ -137,9 +122,10 @@ void Server::multipleClients()
                 requests(i);
         if (!this->responses.empty())
         {
-            std::pair<int, std::string> response = this->responses.front();
+            std::pair<int, t_message> response = this->responses.front();
             this->responses.pop();
-            send(response.first, response.second.c_str(), response.second.length(), 0);
+            if (this->channels[response.second.channelName].validateResponse(response.first, response.second))
+                send(response.first, response.second.message.c_str(), response.second.message.size(), 0);
         }
     }
 }

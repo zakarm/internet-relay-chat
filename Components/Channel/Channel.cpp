@@ -11,7 +11,6 @@ Channel::Channel() : name("")
     this->limit = 0;
     this->memberCount = 0;
     this->mode = 0;
-
 }
 
 Channel::Channel(std::string name, User *user) : name(name)
@@ -22,7 +21,6 @@ Channel::Channel(std::string name, User *user) : name(name)
     this->limit = 0;
     this->memberCount = 0;
     this->mode = 0;
-
 }
 
 Channel::Channel(std::string name) : name(name)
@@ -39,7 +37,8 @@ Channel::Channel(std::string name) : name(name)
 Channel::Channel(const Channel &ch)
 {
     if (this != &ch)
-        {this->name = ch.name;
+    {
+        this->name = ch.name;
         this->key = ch.key;
         this->topic = ch.topic;
         this->users = ch.users;
@@ -68,8 +67,8 @@ void Channel::setLimit(int limit) { this->limit = limit; }
 int Channel::getMemberCount() const { return this->memberCount; }
 void Channel::setMemberCount(int memberCount) { this->memberCount = memberCount; }
 int Channel::getMode() const { return this->mode; }
-void Channel::setMode(int mode) {this->mode |= mode;}
-void Channel::unsetMode(int mode) {this->mode &= ~mode; }
+void Channel::setMode(int mode) { this->mode |= mode; }
+void Channel::unsetMode(int mode) { this->mode &= ~mode; }
 
 std::string Channel::getModeString() const
 {
@@ -108,7 +107,7 @@ void Channel::addUser(User *user)
     std::string message = ":" + user->getNickName() + "!~" + user->getUserName() + "@" + user->getHostName() + " JOIN " + this->getName() + "\r\n";
     send(user->getClientFd(), message.c_str(), message.size(), 0);
     if (!this->getModeString().empty())
-    {   
+    {
         message = ":irc.leet.com 324 " + user->getNickName() + " " + this->name + " " + this->getModeString() + "\r\n";
         send(user->getClientFd(), message.c_str(), message.size(), 0);
     }
@@ -161,8 +160,9 @@ void Channel::removeUser(int clientFd)
     this->memberCount--;
 }
 
-void Channel::broadcast(User *sender, std::string message, std::queue<std::pair<int, std::string> > *queue, bool all)
+void Channel::broadcast(User *sender, std::string message, std::queue<std::pair<int, t_message> > *queue, bool all)
 {
+    uintptr_t receiverId, channelId = reinterpret_cast<uintptr_t>(this);
     message = ":" + sender->getNickName() + "!~" + sender->getUserName() + "@" + sender->getHostName() + " " + message;
     message += "\r\n";
 
@@ -170,10 +170,30 @@ void Channel::broadcast(User *sender, std::string message, std::queue<std::pair<
     if (all)
         for (it = this->users.begin(); it != this->users.end(); it++)
             if (it->second->getNickName() != sender->getNickName())
-                queue->push(std::make_pair(it->first, message));
+            {
+                receiverId = reinterpret_cast<uintptr_t>(it->second);
+                t_message msg = {receiverId, channelId, this->name, message};
+                queue->push(std::make_pair(it->first, msg));
+            }
     for (it = this->operators.begin(); it != this->operators.end(); it++)
         if (it->second->getNickName() != sender->getNickName())
-            queue->push(std::make_pair(it->first, message));
+        {
+            receiverId = reinterpret_cast<uintptr_t>(it->second);
+            t_message msg = {receiverId, channelId,this->name, message};
+            queue->push(std::make_pair(it->first, msg));
+        }
+}
+
+bool Channel::validateResponse(int receiverFd, t_message response)
+{
+    if (response.channelId != reinterpret_cast<uintptr_t>(this))
+        return false;
+    User *user = this->users.find(receiverFd) != this->users.end() ? this->users.find(receiverFd)->second : this->operators.find(receiverFd) != this->operators.end() ? this->operators.find(receiverFd)->second : NULL;
+    if (!user)
+        return false;
+    if (reinterpret_cast<uintptr_t>(user) != response.receiverId)
+        return false;
+    return true;
 }
 
 // void Channel::sendToAll(std::string sender, std::string message, bool all)
@@ -223,13 +243,12 @@ void Channel::sendNames(int clientFd, std::string nickName)
     send(clientFd, message.c_str(), message.size(), 0);
 }
 
-
 bool Channel::isOperator(int clientFd)
 {
     return this->operators.find(clientFd) != this->operators.end();
 }
 
-//to hcange later
+// to hcange later
 
 void Channel::changeOpMode(User *user, int mode)
 {
@@ -245,8 +264,7 @@ void Channel::changeOpMode(User *user, int mode)
     }
 }
 
-
-void    Channel::unsetKey()
+void Channel::unsetKey()
 {
     this->key = "";
 }

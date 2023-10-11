@@ -14,7 +14,7 @@ class Server{
         std::string password;
         std::vector<struct pollfd> pfds;
 
-        std::queue<std::pair<int, std::string> > responses;
+        std::queue<std::pair<int, t_message> > responses;
         std::map<int, std::string> buffring;
         std::map<int, User> users;
         std::map<std::string, Channel> channels;

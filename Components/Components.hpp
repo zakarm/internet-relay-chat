@@ -36,8 +36,9 @@
 
 typedef struct s_message
 {
-    int channelId;
-    uintptr_t client;
+    uintptr_t receiverId;
+    uintptr_t channelId;
+    std::string channelName;
     std::string message;
 } t_message;
 
