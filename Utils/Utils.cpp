@@ -92,5 +92,5 @@ void Utils::loadErrorsReplies(std::map<int, std::string> &errRep, std::string ne
     errRep.insert(std::make_pair(524, " :No help available on this topic"));
     errRep.insert(std::make_pair(525, " :Key is not well-formed"));
     errRep.insert(std::make_pair(650, " :<target> [[(+|-)]<modes> [<mode-parameters>]]"));
-    errRep.insert(std::make_pair(650, " :<target> [[(+|-)]<modes> [<mode-parameters>]]"));
+    errRep.insert(std::make_pair(467, " :Channel key already set"));
 } 
