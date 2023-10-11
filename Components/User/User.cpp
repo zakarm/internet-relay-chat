@@ -108,7 +108,7 @@ void User::addChannel(Channel* channel)
 }
 
 
-void User::leaveAllChannels(std::queue<std::pair<int, std::string> > *queue)
+void User::leaveAllChannels(std::queue<std::pair<int, t_message> > *queue)
 {
     std::map<std::string, Channel*>::iterator it = this->channels.begin();
     while (it != this->channels.end())
