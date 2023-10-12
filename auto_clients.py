@@ -2,7 +2,7 @@ import asyncio
 import signal
 
 MAX_SOCKETS = 100
-DELAY = 0.01
+DELAY = 0.5
 
 async def connect_socket(i):
     try:

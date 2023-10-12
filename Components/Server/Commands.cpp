@@ -459,7 +459,7 @@ void Server::sendErrRep(int code, int clientFd, std::string command, std::string
     else if (code == 461)   ss << ":irc.leet.com 461 " << command << this->errRep.find(461)->second << "\r\n";
     else if (code == 462)   ss << ":irc.leet.com 462 " << command << this->errRep.find(462)->second << "\r\n";
     else if (code == 464)   ss << ":irc.leet.com 464 " << command << this->errRep.find(464)->second << "\r\n";
-    else if (code == 341)   ss << ":irc.leet.com 341 " << command << " " << s1 << " " << s2  << "\r\n";
+    else if (code == 341)   ss << ":irc.leet.com 341 " << s1 << " " << s2  << "\r\n";
     else if (code == 332)   ss << ":irc.leet.com 332 " << s1 << " " << s2 << "\r\n";
     else if (code == 333)   ss << ":irc.leet.com 333 " << s1 << " " << s2 << "\r\n";
     else if (code == 411 || code == 412)   ss << ":irc.leet.com " << code << command << this->errRep.find(code)->second  << "\r\n";
@@ -512,7 +512,7 @@ void Server::cmdLeave(int clientFd, std::string data)
             this->users.find(clientFd)->second.leaveChannel(&(this->channels.find(channel)->second));
             std::string msg = ":" + this->users[clientFd].getNickName() + "!~" + this->users[clientFd].getUserName() + "@" + this->users[clientFd].getHostName() + " PART " + this->channels[channel].getName() + "\r\n";
             send(clientFd, msg.c_str(), msg.size(), 0);
-            this->channels[channel].broadcast(&(this->users.find(clientFd)->second), "PART " + channel + " :" + message, &(this->responses), true);
+            this->channels[channel].broadcast(&(this->users.find(clientFd)->second), "PART " + channel + " :" + message, NULL, true);
             if (this->channels.find(channel) != this->channels.end() && this->channels[channel].getMemberCount() == 0)
                 this->channels.erase(channel);
         }
@@ -583,7 +583,7 @@ void Server::cmdJoin(int clientFd, std::string data)
         }
         this->channels[channel].addUser(&(this->users.find(clientFd)->second));
         this->channels[channel].sendNames(clientFd, this->users.find(clientFd)->second.getNickName());
-        this->channels[channel].broadcast(&(this->users.find(clientFd)->second), "JOIN " + channel, &(this->responses), true);
+        this->channels[channel].broadcast(&(this->users.find(clientFd)->second), "JOIN " + channel, NULL, true);
     }
 }
 int count(std::string str)

@@ -110,10 +110,11 @@ void User::addChannel(Channel* channel)
 
 void User::leaveAllChannels(std::queue<std::pair<int, t_message> > *queue)
 {
+    (void)queue;
     std::map<std::string, Channel*>::iterator it = this->channels.begin();
     while (it != this->channels.end())
     {
-        it->second->broadcast(this, "PART " + it->second->getName(), queue);
+        it->second->broadcast(this, "PART " + it->second->getName(), NULL);
         it->second->removeUser(this->clientFd);
         it++;
     }

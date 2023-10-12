@@ -171,6 +171,11 @@ void Channel::broadcast(User *sender, std::string message, std::queue<std::pair<
         for (it = this->users.begin(); it != this->users.end(); it++)
             if (it->second->getNickName() != sender->getNickName())
             {
+                if (queue == NULL)
+                {
+                    send(it->first, message.c_str(), message.size(), 0);
+                    continue;
+                }
                 receiverId = reinterpret_cast<uintptr_t>(it->second);
                 t_message msg = {receiverId, channelId, this->name, message};
                 queue->push(std::make_pair(it->first, msg));
@@ -178,6 +183,11 @@ void Channel::broadcast(User *sender, std::string message, std::queue<std::pair<
     for (it = this->operators.begin(); it != this->operators.end(); it++)
         if (it->second->getNickName() != sender->getNickName())
         {
+            if (queue == NULL)
+            {
+                send(it->first, message.c_str(), message.size(), 0);
+                continue;
+            }
             receiverId = reinterpret_cast<uintptr_t>(it->second);
             t_message msg = {receiverId, channelId,this->name, message};
             queue->push(std::make_pair(it->first, msg));
