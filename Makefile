@@ -1,16 +1,16 @@
-NAME    = ircserv
+NAME       = ircserv
 NAME_BONUS = botirc
-CXX		= c++
-RM      = rm -rf
-VERSION = -std=c++98
-CFLAGS  = -Wall -Wextra -Werror  $(VERSION)
-DEBUG   = -DDEBUG_MODE
+CXX		   = c++
+RM         = rm -rf
+VERSION    = -std=c++98
+CFLAGS     = -Wall -Wextra -Werror $(VERSION)
+DEBUG      = -DDEBUG_MODE
 
-V       = $(shell tput -Txterm setaf 5)
-W       = $(shell tput -Txterm setaf 7)
-Y       = $(shell tput -Txterm setaf 3)
-G       = $(shell tput -Txterm setaf 2)
-R       = $(shell tput -Txterm setaf 1)
+V          = $(shell tput -Txterm setaf 5)
+W          = $(shell tput -Txterm setaf 7)
+Y          = $(shell tput -Txterm setaf 3)
+G          = $(shell tput -Txterm setaf 2)
+R          = $(shell tput -Txterm setaf 1)
 
 INCLUDES   = Components/Components.hpp \
 			 Components/Server/Server.hpp \
@@ -19,17 +19,14 @@ INCLUDES   = Components/Components.hpp \
 			 Components/Channel/Channel.hpp \
 			 Bot/Bot.hpp
 
-
 CLIENT     = Components/User/User.cpp \
 			 Components/Channel/Channel.cpp \
-
 
 SERVER     = Components/Server/Server.cpp \
 			 Components/Server/Commands.cpp \
 			 Components/Server/Connection.cpp
 
 UTILS      = Utils/Utils.cpp
-
 
 MAIN	   = main.cpp
 
@@ -51,7 +48,6 @@ BANNER     =    "\t\t$(V)██$(W)╗ $(V)██████$(W)╗   $(V)█�
 				"\t\t╚═╝ ╚═╝  ╚═╝  ╚═════╝\n"
 
 all : $(NAME)
-	./ircserv 6667 pass
 
 bonus : $(NAME_BONUS)
 

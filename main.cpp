@@ -1,4 +1,3 @@
-
 #include "Components/Server/Server.hpp"
 
 void sig_handler(int signum)
