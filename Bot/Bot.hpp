@@ -22,4 +22,5 @@ class Bot
         void connectToServer();
         void runCommand(std::string data);
 };
+void port_check(const char *port);
 #endif

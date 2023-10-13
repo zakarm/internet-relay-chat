@@ -80,10 +80,10 @@ void Server::requests(int indexClient)
     else if (this->pfds[indexClient].revents & POLLIN)
     {
         char buffer[1000];
-        memset(buffer, 0, sizeof(buffer));
+        Utils::ft_memset(buffer, 0, sizeof(buffer));
         int r = recv(this->pfds[indexClient].fd, buffer, sizeof(buffer) - 1, 0);
         if (r > 512)
-            std::cout << Utils::getTime() << " :Length exceeded" << std::endl;
+            std::cout << Utils::getTime() << "buffer limite exceeded by :" << this->users.at(this->pfds[indexClient].fd).getHostName() << std::endl;
         else if (r <= 0)
             clientDisconnected(this->pfds[indexClient].fd);
         else
@@ -110,9 +110,10 @@ void Server::acceptAndDecline()
 
 void Server::multipleClients()
 {
+    int timeout = 10;
     for (;;)
     {
-        int numfds = poll(&(this->pfds[0]), this->pfds.size(), POLL_TIMEOUT);
+        int numfds = poll(&(this->pfds[0]), this->pfds.size(), timeout);
         if (numfds == -1)
             customException("Error : poll failed");
         if (this->pfds[0].revents & POLLIN)
@@ -122,10 +123,13 @@ void Server::multipleClients()
                 requests(i);
         if (!this->responses.empty())
         {
+            timeout = 0;
             std::pair<int, t_message> response = this->responses.front();
             this->responses.pop();
             if (this->channels[response.second.channelName].validateResponse(response.first, response.second))
                 send(response.first, response.second.message.c_str(), response.second.message.size(), 0);
         }
+        else
+            timeout = 10;
     }
 }

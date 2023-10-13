@@ -206,21 +206,6 @@ bool Channel::validateResponse(int receiverFd, t_message response)
     return true;
 }
 
-// void Channel::sendToAll(std::string sender, std::string message, bool all)
-// {
-//     message = ":" + sender + " PRIVMSG " + this->name + " :" + message + "\r\n";
-
-//     std::map<int, User *>::iterator it;
-//     if (all)
-//     {
-//         for (it = this->users.begin(); it != this->users.end(); it++)
-//             if (it->second->getNickName() != sender)
-//                 send(it->first, message.c_str(), message.size(), 0);
-//     }
-//     for (it = this->operators.begin(); it != this->operators.end(); it++)
-//         if (it->second->getNickName() != sender)
-//             send(it->first, message.c_str(), message.size(), 0);
-// }
 void Channel::listUsers()
 {
     std::cout << "Channel name: " << this->name << std::endl;
@@ -258,8 +243,6 @@ bool Channel::isOperator(int clientFd)
     return this->operators.find(clientFd) != this->operators.end();
 }
 
-// to hcange later
-
 void Channel::changeOpMode(User *user, int mode)
 {
     if (mode == 1)
@@ -274,10 +257,6 @@ void Channel::changeOpMode(User *user, int mode)
     }
 }
 
-void Channel::unsetKey()
-{
-    this->key = "";
-}
 /**************************************************************/
 /*                         Destructor                         */
 /**************************************************************/

@@ -1,15 +1,5 @@
 #include "Utils.hpp"
 
-int Utils::countWords(std::string data)
-{
-    int count = 0;
-    std::stringstream ss(data);
-    std::string word;
-    while (ss >> word)
-        count++;
-    return count;
-}
-
 std::string Utils::getTime()
 {
     std::stringstream timeStream;
@@ -30,6 +20,13 @@ std::string Utils::getDate()
     if (date.find('\n') != std::string::npos)
         date = date.substr(0, date.find('\n'));
     return date;
+}
+
+void Utils::ft_memset(void *s, int c, size_t n)
+{
+    unsigned char *ptr = (unsigned char *)s;
+    while (n--)
+        *ptr++ = (unsigned char)c;
 }
 
 std::string Utils::stolower(std::string data)
