@@ -39,7 +39,7 @@ void Bot::connectToServer()
         std::cerr << RED << "Error: connect failed" << DEFAULT << std::endl;
         exit(EXIT_FAILURE);
     }
-    std::string pass = "PASS pass\r\n";
+    std::string pass = "PASS "+ this->password +"\r\n";
     send(this->clientSocket, pass.c_str(), pass.size(),0);
     usleep(3000);
     std::string hand = "*bot* *bot*\r\n";
@@ -47,7 +47,7 @@ void Bot::connectToServer()
     for (;;)
     {   
         char buffer[1024];
-        bzero(buffer, sizeof(buffer));
+        Utils::ft_memset(buffer, 0, sizeof(buffer));
         int err = recv(this->clientSocket, buffer, sizeof(buffer), 0);
         if (err > 0)
             runCommand(buffer);
@@ -59,12 +59,32 @@ void Bot::connectToServer()
     }
 }
 
+void port_check(const char *port)
+{
+    if (!port || *port == '\0')
+        throw(std::runtime_error("Error: port range not valid"));
+    char *endp;
+    long conv = std::strtol(port, &endp, 10);
+    if (*endp != '\0' || conv <= 1024 || conv > 65535)
+        throw(std::runtime_error("Error: port range not valid"));
+}
+
 void Bot::runCommand(std::string data)
 {
     std::stringstream ss(data);
     std::string param, command, client, target, message;
     ss >> param >> std::ws >> command >> std::ws >> client >> std::ws >> target >> std::ws;
     std::getline(ss, message);
+        if (param == ":irc.leet.com" && command == "464")
+    {
+        std::cerr << RED << "Error: Password incorrect" << DEFAULT << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    else if (param == ":irc.leet.com" && command == "433")
+    {
+        std::cerr << RED << "Error: Nickname is already in use" << DEFAULT << std::endl;
+        exit(EXIT_FAILURE);
+    }
     if (param == ":irc.leet.com" && command == "401")
     {
         std::stringstream err;

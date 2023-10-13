@@ -20,12 +20,13 @@ void Server::authenticate(int clientFd)
 
 void Server::cmdPass(int clientFd, std::string data)
 {
+
     std::stringstream err;
     if (data.empty())
         sendErrRep(461, clientFd, "PASS", "", "");
     else if (this->users.find(clientFd)->second.getIsConnected())
         sendErrRep(462, clientFd, "PASS", "", "");
-    else if (!checkPass(data) && data != "bot")
+    else if (!checkPass(data))
         sendErrRep(464, clientFd, "PASS", "", "");
     else
         this->users.find(clientFd)->second.setSetPass(true);
@@ -366,7 +367,69 @@ void Server::cmdPrivMsg(int clientFd, std::string data)
                     msg = ":" + this->users[clientFd].getNickName()+ "!" + this->users[clientFd].getUserName() + "@" + this->users[clientFd].getHostName() + " PRIVMSG " + target + " :" + message + "\r\n";
                     send(this->nicks[target], msg.c_str(), msg.size(), 0);
                 }
-                    // this->addToResponse(this->getUserFdByNick(target), ":" + this->users[clientFd].getNickName()+ "!" + this->users[clientFd].getUserName() + "@" + this->users[clientFd].getHostName() + " PRIVMSG " + target + " :" + message + "\r\n");
+            }
+        }
+    }
+}
+
+void Server::cmdNotice(int clientFd, std::string data)
+{
+    std::string prefix("NOTICE ");
+    if (!this->users.find(clientFd)->second.getIsConnected())
+        sendErrRep(451, clientFd, "NOTICE", "", "");
+    else
+    {
+        std::stringstream ss(data);
+        std::string targets, message, target;
+
+        ss >> targets;
+        ss >> std::ws;
+        std::getline(ss, message);
+
+        if (targets.empty())
+        {
+            sendErrRep(411, clientFd, "NOTICE", "", "");
+            return;
+        }
+        if (message.empty())
+        {
+            sendErrRep(412, clientFd, "NOTICE", this->errRep.find(412)->second, "");
+            return;
+        }
+        if (message[0] == ':')
+            message = message.substr(1, message.length() - 1);
+        std::stringstream ss2(targets);
+        while (std::getline(ss2, target, ','))
+        {
+            if (target.empty())
+                continue;
+            if (target[0] == '#' || target[1] == '#')
+            {
+                int to;
+                to = target[0] == '%' ?  1 : 0;
+                target = target.substr(to, target.length());
+                if (!this->users[clientFd].isInChannel(target))
+                {
+                    sendErrRep(442, clientFd, "NOTICE", this->users.find(clientFd)->second.getNickName(), target); 
+                    continue;
+                }
+                message = target + " :" + message;
+                if (this->channels.find(target) != this->channels.end())
+                    this->channels[target].broadcast(&(this->users.find(clientFd)->second),prefix + message, &(this->responses), true);
+                else
+                    sendErrRep(401, clientFd, "NOTICE", this->users.find(clientFd)->second.getNickName(), target);
+            }
+            else
+            {
+
+                if (this->nicks.find(target) == this->nicks.end())
+                    sendErrRep(401, clientFd, "NOTICE", this->users.find(clientFd)->second.getNickName(), target);
+                else
+                {
+                    std::string msg;
+                    msg = ":" + this->users[clientFd].getNickName()+ "!" + this->users[clientFd].getUserName() + "@" + this->users[clientFd].getHostName() + " NOTICE " + target + " :" + message + "\r\n";
+                    send(this->nicks[target], msg.c_str(), msg.size(), 0);
+                }
             }
         }
     }
@@ -426,14 +489,14 @@ void Server::runCommand(int clientFd, std::string command)
     else if (c == "quit")
         return clientDisconnected(clientFd), void();
     std::map<std::string, void (Server::*)(int, std::string)> cmds;
-    cmds["pass"] = &Server::cmdPass; cmds["nick"] = &Server::cmdNick;
+    cmds["pass"] = &Server::cmdPass; cmds["nick"] = &Server::cmdNick; cmds["notice"] = &Server::cmdNotice;
     cmds["user"] = &Server::cmdUser; cmds["topic"] = &Server::cmdTopic; cmds["invite"] = &Server::cmdInvite;
     cmds["kick"] = &Server::cmdKick; cmds["privmsg"] = &Server::cmdPrivMsg; cmds["join"] = &Server::cmdJoin;
     cmds["part"] = &Server::cmdLeave; cmds["bot"] = &Server::cmdBot; cmds["mode"] = &Server::cmdMode;
     cmds["*bot*"] = &Server::cmdAuthBot;
     std::map<std::string, void (Server::*)(int, std::string)>::iterator it;
     it = cmds.find(c);
-    (it == cmds.end()) ? sendErrRep(421, clientFd, command, "", "") : (this->*it->second)(clientFd, cmdParam);
+    (it == cmds.end()) ? sendErrRep(421, clientFd, cmdName , this->users.find(clientFd)->second.getNickName(), "") : (this->*it->second)(clientFd, cmdParam);
 }
 
 void Server::sendErrRep(int code, int clientFd, std::string command, std::string s1, std::string s2)
@@ -445,9 +508,9 @@ void Server::sendErrRep(int code, int clientFd, std::string command, std::string
     else if (code == 3)     ss << ":irc.leet.com 003 " << u.getNickName() << " " << this->errRep.find(3)->second << " " << Utils::getDate() << "\r\n";
     else if (code == 4)     ss << ":irc.leet.com 004 " << u.getNickName() << " " << this->errRep.find(4)->second << "\r\n";
     else if (code == 5)     ss << ":irc.leet.com 005 " << u.getNickName() << " " << this->errRep.find(5)->second << "\r\n";
-    else if (code == 431 || code == 421)
+    else if (code == 431)
         ss << ":irc.leet.com " << code << " " << command << this->errRep.find(code)->second << "\r\n";
-    else if (code == 421)   ss << ":irc.leet.com 421 " << command << this->errRep.find(421)->second << "\r\n";
+    else if (code == 421)   ss << ":irc.leet.com 421 " << s1 << " " << command << " " << this->errRep.find(421)->second << "\r\n";
     else if (code == 424)   ss << ":irc.leet.com 427 " << s1 << s2 << "\r\n";
     else if (code == 331)   ss << ":irc.leet.com 331 " << command << " " << s1 << " " << s2 << this->errRep.find(331)->second << "\r\n";
     else if (code == 442)   ss << ":irc.leet.com 442 " << s1 << " " << s2 << this->errRep.find(442)->second << "\r\n";

@@ -3,7 +3,7 @@ NAME_BONUS = botirc
 CXX		= c++
 RM      = rm -rf
 VERSION = -std=c++98
-CFLAGS  = -Wall -Wextra -Werror  $(VERSION) -g -fsanitize=address
+CFLAGS  = -Wall -Wextra -Werror  $(VERSION)
 DEBUG   = -DDEBUG_MODE
 
 V       = $(shell tput -Txterm setaf 5)
@@ -51,6 +51,7 @@ BANNER     =    "\t\t$(V)██$(W)╗ $(V)██████$(W)╗   $(V)█�
 				"\t\t╚═╝ ╚═╝  ╚═╝  ╚═════╝\n"
 
 all : $(NAME)
+	./ircserv 6667 pass
 
 bonus : $(NAME_BONUS)
 

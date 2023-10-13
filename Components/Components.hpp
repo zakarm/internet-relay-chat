@@ -11,11 +11,6 @@
 
 #define POLL_TIMEOUT 0
 
-#ifdef DEBUG_MODE
-# define DEBUG_MSG(msg) std::cout << "Debug: " << msg
-#else
-# define DEBUG_MSG(msg)
-#endif
 
 #include <iostream>
 #include <sys/socket.h>
@@ -33,6 +28,7 @@
 #include <signal.h>
 #include <algorithm>
 #include <cstring>
+#include <netinet/tcp.h>
 
 typedef struct s_message
 {

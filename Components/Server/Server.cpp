@@ -73,8 +73,10 @@ bool Server::checkDuplicateNick(std::string nickName)
     return true;
 }
 
-bool Server::checkPass(std::string password)
-{
+bool Server::checkPass(std::string password){
+
+    if (password[0] == ':')
+        password = password.substr(1);
     if (password != this->password) 
         return false;
     return true;

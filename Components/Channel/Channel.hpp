@@ -54,15 +54,10 @@ class Channel{
         bool isInvited(std::string nickName);
         void addOperator(User *user);
         void removeUser(int clientFd);
-        // void sendToAll(std::string sender, std::string message, bool all = true);
         void broadcast(User *sender, std::string message, std::queue<std::pair<int, t_message> > *queue,  bool all = true);
         void sendNames(int clientFd, std::string nickName);
         void changeOpMode(User *user, int mode);
         bool validateResponse(int recieverFd, t_message response);
-        //to chaneg later
-        // void o_plus(User *user);
-        // void o_minus(User *user);
-        void unsetKey();
         enum MODES{
             NO_MODE = 0,
             INVITE_ONLY = 1,

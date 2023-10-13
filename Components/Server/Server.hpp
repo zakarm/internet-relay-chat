@@ -64,14 +64,12 @@ class Server{
         void cmdUser(int clientFd, std::string data);
         void cmdLeave(int clientFd, std::string data);
         void cmdBot(int clientFd, std::string data);
+        void cmdNotice(int clientFd, std::string data);
         void authenticate(int clientFd);
         void runCommand(int clientFd, std::string command);
         int  userCheck(std::string data, int ft_clientFd);
-        bool check_user(const std::string& username, const std::string& mode, const std::string& asterisk);
-        int  countWords(std::string data);
         bool checkDuplicateUser(int clientFd);
         void cmdPrivMsg(int clientFd, std::string data);
-        void addToResponse(int clientFd, std::string response);
         void cmdMode(int clientFd, std::string cmd);
         void i_mode(std::string channel, std::string mode, int clientFd);
         void l_mode(int clientFd, std::string cmd);
