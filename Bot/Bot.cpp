@@ -32,6 +32,16 @@ Bot::~Bot()
 /*                         Functions                          */
 /**************************************************************/
 
+void port_check(const char *port)
+{
+    if (!port || *port == '\0')
+        throw(std::runtime_error("Error: port range not valid"));
+    char *endp;
+    long conv = std::strtol(port, &endp, 10);
+    if (*endp != '\0' || conv <= 1024 || conv > 65535)
+        throw(std::runtime_error("Error: port range not valid"));
+}
+
 void Bot::connectToServer()
 {
     if (connect(this->clientSocket, (struct sockaddr *)&this->clientAddr, this->socketLen) < 0)
@@ -75,7 +85,7 @@ void Bot::runCommand(std::string data)
     std::string param, command, client, target, message;
     ss >> param >> std::ws >> command >> std::ws >> client >> std::ws >> target >> std::ws;
     std::getline(ss, message);
-        if (param == ":irc.leet.com" && command == "464")
+    if (param == ":irc.leet.com" && command == "464")
     {
         std::cerr << RED << "Error: Password incorrect" << DEFAULT << std::endl;
         exit(EXIT_FAILURE);
