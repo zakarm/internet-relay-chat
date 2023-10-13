@@ -92,11 +92,6 @@ int Server::getUserFdByNick(std::string nick)
     return -1;
 }
 
-// void Server::addToResponse(int clientFd, std::string response)
-// {
-//     this->responses.push(std::make_pair(clientFd, response));
-// }
-
 int Server::getUserFdByNick(std::string nick) const
 {
     return this->nicks.find(nick) != this->nicks.end() ? this->nicks.find(nick)->second : -1;

@@ -9,8 +9,9 @@
 #define DEFAULT "\033[39m"
 #endif
 
+#ifndef POLL_TIMEOUT
 #define POLL_TIMEOUT 0
-
+#endif
 
 #include <iostream>
 #include <sys/socket.h>

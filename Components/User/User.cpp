@@ -82,7 +82,7 @@ std::string User::getInfo() const
 void User::joinChannel(Channel* channel)
 {
     if(this->isInChannel(channel->getName()))
-        return; // send already in channel.
+        return;
     this->channels.insert(std::make_pair(channel->getName(), channel));
     channel->addUser(this);
 }
@@ -90,7 +90,7 @@ void User::joinChannel(Channel* channel)
 void User::leaveChannel(Channel* channel) 
 {
     if(!this->isInChannel(channel->getName()))
-        return; // send not in channel.
+        return;
     this->channels.erase(channel->getName());
     channel->removeUser(this->clientFd);
 }
@@ -103,7 +103,7 @@ bool User::isInChannel(std::string channelName)
 void User::addChannel(Channel* channel)
 {
     if(this->isInChannel(channel->getName()))
-        return; // send already in channel.
+        return;
     this->channels.insert(std::make_pair(channel->getName(), channel));
 }
 
