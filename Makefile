@@ -24,7 +24,17 @@ CLIENT     = Components/User/User.cpp \
 
 SERVER     = Components/Server/Server.cpp \
 			 Components/Server/Commands.cpp \
-			 Components/Server/Connection.cpp
+			 Components/Server/Connection.cpp \
+			 Components/Server/Mode.cpp \
+			 Components/Server/Join.cpp \
+			 Components/Server/Privmsg.cpp \
+			 Components/Server/Part.cpp \
+			 Components/Server/Kick.cpp \
+			 Components/Server/Topic.cpp \
+			 Components/Server/Invite.cpp \
+			 Components/Server/User.cpp \
+			 Components/Server/Nick.cpp \
+			 Components/Server/Pass.cpp 
 
 UTILS      = Utils/Utils.cpp
 
