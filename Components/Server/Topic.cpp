@@ -23,13 +23,14 @@ void Server::cmdTopic(int clientFd, std::string data)
                 sendErrRep(331, clientFd, "TOPIC", this->users.find(clientFd)->second.getNickName(), channelName);
             else
             {
-                sendErrRep(332, clientFd, "TOPIC", this->users.find(clientFd)->second.getNickName(), channelName + " " + \
-                            this->channels.find(channelName)->second.getTopic());
+                std::string message;
+                message = ":irc.leet.com 332 " + this->users.find(clientFd)->second.getNickName() + " " +channelName + " : " + this->channels.find(channelName)->second.getTopic() + "\r\n";
+                send(clientFd, message.c_str(), message.size(), 0);
                 sendErrRep(333, clientFd, "TOPIC", this->users.find(clientFd)->second.getNickName(), channelName + " " + \
                             this->users.find(clientFd)->second.getNickName() + " " + Utils::getDate());
             }
         }
-        else
+        else 
         {
             if (this->channels.find(channelName)->second.getMode() & Channel::TOPIC_PROTECTED && !this->channels.find(channelName)->second.isOperator(clientFd))
             {
@@ -40,22 +41,12 @@ void Server::cmdTopic(int clientFd, std::string data)
                 this->channels.find(channelName)->second.setTopic("");
             else if (newTopic[0] == ':')
                 this->channels.find(channelName)->second.setTopic(newTopic.substr(1, newTopic.size()));
-            else
+            else 
                 this->channels.find(channelName)->second.setTopic(newTopic);
-            std::string clientNick(this->users[clientFd].getNickName());
-            std::map<int, User *>::const_iterator it;
-            for (it = this->channels[channelName].getUsers().begin(); it != this->channels[channelName].getUsers().end(); it++)
-            {
-                if (it->second->getIsConnected())
-                    sendErrRep(332, it->second->getClientFd(), "", clientNick,
-                               channelName + " :" + this->channels.find(channelName)->second.getTopic());
-            }
-            for (it = this->channels[channelName].getOperators().begin(); it != this->channels[channelName].getOperators().end(); it++)
-            {
-                if (it->second->getIsConnected())
-                    sendErrRep(332, it->second->getClientFd(), "", clientNick,
-                               channelName + " :" + this->channels.find(channelName)->second.getTopic());
-            }
+            std::string message;
+            message = ":" + this->users.find(clientFd)->second.getNickName() + " TOPIC " + channelName + " :" + this->channels.find(channelName)->second.getTopic() + "\r\n";
+            this->channels.find(channelName)->second.broadcast(&(this->users.find(clientFd)->second), message, &(this->responses), true);
+            send(clientFd, message.c_str(), message.size(), 0);              
         }
     }
 }
