@@ -42,7 +42,7 @@ MAIN	   = main.cpp
 BOT        = Bot/Bot.cpp
 MAIN_BONUS = Bot/main.cpp
 BIN        = obj/
-BIN_BONUS  = obj_bounus/
+BIN_BONUS  = obj_bonus/
 SRC        = $(UTILS) $(CLIENT) $(SERVER) $(MAIN)
 SRC_BONUS  = $(UTILS) $(BOT) $(MAIN_BONUS)
 
