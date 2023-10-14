@@ -9,7 +9,7 @@ int Server::userCheck(std::string data, int ft_clientFd)
             return (461);
     else if (!checkDuplicateUser(ft_clientFd))
         return (462);
-    else if (wordCount != 4 && wordCount != 1)
+    else if (wordCount < 4 && wordCount != 1)
         return 461;
     return (1);
 }
@@ -29,7 +29,7 @@ void Server::cmdUser(int clientFd, std::string data)
     }
     else 
     {   
-        if (count(data) == 4 )
+        if (count(data) >= 4 )
         {
             std::stringstream s(data);
             std::string username, mode, asterisk, realname;
