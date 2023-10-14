@@ -581,7 +581,8 @@ void Server::cmdJoin(int clientFd, std::string data)
     ss >> channels;
     ss >> std::ws;
     std::getline(ss, passwords);
-
+    if (passwords[0] == ':')
+        passwords = passwords.substr(1, passwords.length() - 1);
     std::stringstream ss2(channels);
     std::stringstream ss3(passwords);
     while (std::getline(ss2, channel, ','))
@@ -604,6 +605,9 @@ void Server::cmdJoin(int clientFd, std::string data)
             this->channels.insert(std::make_pair(channel, Channel(channel)));
         else
         {   
+            std::cout << "Entered password: " << password << std::endl;
+            std::cout << "Channel password: " << this->channels[channel].getKey() << std::endl;
+            std::cout << "Is identical: " << (password == this->channels[channel].getKey()) << std::endl;
             if (this->users.find(clientFd)->second.isInChannel(channel))
             {
                 sendErrRep(443, clientFd, "JOIN", this->users.find(clientFd)->second.getNickName(), channel);
@@ -639,69 +643,104 @@ int count(std::string str)
         count++;
     return count;
 }
-void    Server::i_mode(std::string channel, std::string mode, int clientFd)
+void    Server::i_mode(std::string channel, char sign, int clientFd)
 {
     Channel& chan = this->channels[channel];
-    if (mode == "+i" )
+    if (sign == '+' && !(chan.getMode() & Channel::INVITE_ONLY))
     {  
         chan.setMode(chan.INVITE_ONLY);
         printModemessage(channel, "+i", clientFd);
     }
-    else if (mode == "-i")
+    else if (sign == '-' && chan.getMode() & Channel::INVITE_ONLY)
     {
         chan.unsetMode(chan.INVITE_ONLY);
         printModemessage(channel, "-i", clientFd);
     }
 }
 
-void Server::l_mode(int clientFd, std::string cmd)
-{
-    std::string channel, mode, limit;
-    std::stringstream ss(cmd);
-    ss >> channel >> mode >> limit;
-    int max_limit = 30;
-    int l = 0;
-    if (limit.empty() && mode == "+l")
-    {
-        std::string message = ":irc.leet.com 696 " + this->users[clientFd].getNickName() + " " + channel + " l * You must specify a parameter for the limit mode. Syntax: <limit>.\r\n";
-        send(clientFd, message.c_str(), message.size(), 0);
-        return; 
-    }
-    if (mode == "+l" || mode == "-l")
-    {
-        if (mode == "+l")
-        { 
+// void Server::l_mode(int clientFd, std::string cmd)
+// {
+//     std::string channel, mode, limit;
+//     std::stringstream ss(cmd);
+//     ss >> channel >> mode >> limit;
+//     int max_limit = 30;
+//     int l = 0;
+//     if (limit.empty() && mode == "+l")
+//     {
+//         std::string message = ":irc.leet.com 696 " + this->users[clientFd].getNickName() + " " + channel + " l * You must specify a parameter for the limit mode. Syntax: <limit>.\r\n";
+//         send(clientFd, message.c_str(), message.size(), 0);
+//         return; 
+//     }
+//     if (mode == "+l" || mode == "-l")
+//     {
+//         if (mode == "+l")
+//         { 
 
-            l = std::atoi(limit.c_str());
-            if (l <= 0 || l > max_limit)
-            {
-                std::string message = ":irc.leet.com 696 " + this->users[clientFd].getNickName() + "  " + channel + " l " + limit + " :Invalid limit mode parameter. Syntax: <limit>.\r\n";
-                send(clientFd, message.c_str(), message.size(), 0);
-            }
-            else
-            {
-                this->channels[channel].setLimit(l);
-                this->channels[channel].setMode(Channel::LIMIT);
-                printModemessage(channel, "+l", clientFd);
-            }
-        }
-        else if (mode == "-l" && this->channels[channel].getMode() & Channel::LIMIT)
+//             l = std::atoi(limit.c_str());
+//             if (l <= 0 || l > max_limit)
+//             {
+//                 std::string message = ":irc.leet.com 696 " + this->users[clientFd].getNickName() + "  " + channel + " l " + limit + " :Invalid limit mode parameter. Syntax: <limit>.\r\n";
+//                 send(clientFd, message.c_str(), message.size(), 0);
+//             }
+//             else
+//             {
+//                 this->channels[channel].setLimit(l);
+//                 this->channels[channel].setMode(Channel::LIMIT);
+//                 printModemessage(channel, "+l", clientFd);
+//             }
+//         }
+//         else if (mode == "-l" && this->channels[channel].getMode() & Channel::LIMIT)
+//         {
+//             this->channels[channel].unsetMode(Channel::LIMIT);
+//             printModemessage(channel, "-l", clientFd);
+//         }
+//     }
+// }
+
+void Server::l_mode(int clientFd, char sign, std::string channel, std::stringstream &ss)
+{
+    Channel& chan = this->channels[channel];
+    if (sign == '+' && !(chan.getMode() & Channel::LIMIT))
+    {
+        std::string limit;
+        ss >> limit;
+        if (limit.empty())
         {
-            this->channels[channel].unsetMode(Channel::LIMIT);
-            printModemessage(channel, "-l", clientFd);
+            std::string message = ":irc.leet.com 696 " + this->users[clientFd].getNickName() + " " + channel + " l * You must specify a parameter for the limit mode. Syntax: <limit>.\r\n";
+            send(clientFd, message.c_str(), message.size(), 0);
+            return; 
         }
+        int max_limit = 30;
+        int l = std::atoi(limit.c_str());
+        if (l <= 0 || l > max_limit)
+        {
+            std::string message = ":irc.leet.com 696 " + this->users[clientFd].getNickName() + "  " + channel + " l " + limit + " :Invalid limit mode parameter. Syntax: <limit>.\r\n";
+            send(clientFd, message.c_str(), message.size(), 0);
+        }
+        else
+        {
+            chan.setLimit(l);
+            chan.setMode(Channel::LIMIT);
+            printModemessage(channel, "+l", clientFd);
+        }
+    }
+    else if (sign == '-' && chan.getMode() & Channel::LIMIT)
+    {
+        chan.unsetMode(Channel::LIMIT);
+        printModemessage(channel, "-l", clientFd);
     }
 }
+
 std::string Server::set_operator(std::string channel, User *user, std::string mode)
 {
     std::string message;
     std::map<std::string, Channel>::iterator channelIt = channels.find(channel);
-    if (mode == "+o")
+    if (mode == "+o" && !channelIt->second.isOperator(user->getClientFd()))
     {       
         channelIt->second.changeOpMode(user, true);
         message = "MODE " + channel + " +o " + user->getNickName();
     }
-    else if (mode == "-o" && channelIt->second.getOperators().size() > 1)
+    else if (mode == "-o" && channelIt->second.isOperator(user->getClientFd()) && channelIt->second.getOperators().size() > 1)
     {   
         channelIt->second.changeOpMode(user, false);
         message = "MODE " + channel + " -o " + user->getNickName();
@@ -709,46 +748,72 @@ std::string Server::set_operator(std::string channel, User *user, std::string mo
     return message;
 }
 
-void Server::o_mode(int clientFd, std::string cmd)
-{
+// void Server::o_mode(int clientFd, std::string cmd)
+// {
 
-    std::string channel, mode, nick , message;
-    std::stringstream ss(cmd);
-    ss >> channel >> mode >> nick;
-    User& user = this->users[clientFd];
+//     std::string channel, mode, nick , message;
+//     std::stringstream ss(cmd);
+//     ss >> channel >> mode >> nick;
+//     User& user = this->users[clientFd];
+//     if (nick.empty())
+//     {
+//         std::string message = ":irc.leet.com 696 " +this->users[clientFd].getNickName() + " "+ channel + " o * You must specify a parameter for the op mode. Syntax: <nick>.\r\n";
+//         send(clientFd, message.c_str(), message.size(), 0);
+//         return;
+//     }
+//     int targetFd = getUserFdByNick(nick);
+//     if (targetFd == -1){
+//         sendErrRep(401, clientFd, "MODE", user.getNickName(), nick);
+//         return;}
+//     User& targetUser = this->users[targetFd];
+//     if (!targetUser.isInChannel(channel)){
+//         sendErrRep(441, clientFd, "MODE", targetUser.getNickName(), channel);
+//         return;}
+//     message = set_operator(channel, &(this->users[targetFd]), mode);
+//     if (!message.empty())
+//     {
+//         this->channels[channel].broadcast(&(this->users.find(clientFd)->second), message, &(this->responses));
+//         message = ":" + this->users[clientFd].getNickName() + "!~" + this->users[clientFd].getUserName() + "@" + this->users[clientFd].getHostName() + " " + message + "\r\n"; /// might need to change the sender
+//         send(clientFd, message.c_str(), message.size(), 0);
+//     }
+// }
+
+void Server::o_mode(int clientFd , char sign, std::string channel, std::stringstream& ss)
+{
+    Channel& chan = this->channels[channel];
+    std::string nick;
+    ss >> nick;
     if (nick.empty())
     {
-        std::string message = ":irc.leet.com 696 " +this->users[clientFd].getNickName() + " "+ channel + " o * You must specify a parameter for the op mode. Syntax: <nick>.\r\n";
+        std::string message = ":irc.leet.com 696 " + this->users[clientFd].getNickName() + " " + channel + " o * You must specify a parameter for the op mode. Syntax: <nick>.\r\n";
         send(clientFd, message.c_str(), message.size(), 0);
         return;
     }
     int targetFd = getUserFdByNick(nick);
-    if (targetFd == -1){
-        sendErrRep(401, clientFd, "MODE", user.getNickName(), nick);
-        return;}
+    if (targetFd == -1)
+        {sendErrRep(401, clientFd, "MODE", this->users[clientFd].getNickName(), nick);return;}
     User& targetUser = this->users[targetFd];
-    if (!targetUser.isInChannel(channel)){
-        sendErrRep(441, clientFd, "MODE", targetUser.getNickName(), channel);
-        return;}
-    message = set_operator(channel, &(this->users[targetFd]), mode);
+    if (!targetUser.isInChannel(channel))
+        {sendErrRep(441, clientFd, "MODE", targetUser.getNickName(), channel);return;}
+    std::string message = set_operator(channel, &(this->users[targetFd]), sign == '+' ? "+o" : "-o");
     if (!message.empty())
     {
-        this->channels[channel].broadcast(&(this->users.find(clientFd)->second), message, &(this->responses));
+        chan.broadcast(&(this->users.find(clientFd)->second), message, &(this->responses));
         message = ":" + this->users[clientFd].getNickName() + "!~" + this->users[clientFd].getUserName() + "@" + this->users[clientFd].getHostName() + " " + message + "\r\n"; /// might need to change the sender
         send(clientFd, message.c_str(), message.size(), 0);
     }
 }
 
 
-void Server::t_mode(std::string channel, std::string mode, int clientFd)
+void Server::t_mode(std::string channel, char sign, int clientFd)
 {
     Channel& chan = this->channels[channel];
-    if (mode == "+t")
+    if (sign == '+' && !(chan.getMode() & Channel::TOPIC_PROTECTED))
     {
         chan.setMode(Channel::TOPIC_PROTECTED);
         printModemessage(channel, "+t", clientFd);
     }
-    else if (mode == "-t")
+    else if (sign == '-' && chan.getMode() & Channel::TOPIC_PROTECTED)
     {
         chan.unsetMode(Channel::TOPIC_PROTECTED);
         printModemessage(channel, "-t", clientFd);
@@ -764,76 +829,154 @@ void    Server::emptyMode(std::string channel, int clientFd)
     }
 }
 
-void    Server::cmdMode(int clientFd, std::string cmd)
+// void    Server::cmdMode(int clientFd, std::string cmd)
+// {
+//     int c = count(cmd);
+//     std::string channel, mode;
+//     std::stringstream ss(cmd);
+//     ss >> channel >> mode;
+//     User& user = this->users[clientFd];
+//     Channel& chan = this->channels[channel];
+//     if (cmd.empty())
+//         sendErrRep(650, clientFd, "MODE", "", "");
+//     else if (chan.getName() != channel)
+//         sendErrRep(403, clientFd, "MODE", "" , channel);
+//     else if (mode.empty())
+//         emptyMode(channel, clientFd);
+//     else if (!user.isInChannel(channel))
+//         sendErrRep(442, clientFd, "MODE", user.getNickName(), channel);
+//     else if (!user.getIsConnected())
+//         sendErrRep(451, clientFd, "MODE", "", "");
+//     else if (!chan.isOperator(clientFd))
+//         sendErrRep(482, clientFd, "MODE", user.getNickName(), channel);
+//     else if (std::strlen(mode.c_str()) == 2)
+//     {   
+//         if (c == 2 && (cmd.find("+i") != std::string::npos || cmd.find("-i") != std::string::npos))
+//             i_mode(channel, mode, clientFd);
+//         else if (c <= 3 && (cmd.find("+o") != std::string::npos || cmd.find("-o") != std::string::npos))
+//             o_mode(clientFd, cmd);
+//         else if (c >= 2 && (cmd.find("+l") != std::string::npos || cmd.find("-l") != std::string::npos))
+//             l_mode(clientFd, cmd);
+//         else if (c == 2 && (cmd.find("+t") != std::string::npos || cmd.find("-t") != std::string::npos))
+//             t_mode(channel, mode, clientFd);
+//         else if (c >= 2 && (cmd.find("+k") != std::string::npos || cmd.find("-k") != std::string::npos))
+//             k_mode(cmd, clientFd);
+//         else
+//             sendErrRep(472, clientFd, "MODE", mode , channel);
+//     }
+//     else
+//         sendErrRep(472, clientFd, "MODE", mode, channel);
+// }
+
+bool is_valid_mode(char c)
 {
-    int c = count(cmd);
-    std::string channel, mode;
-    std::stringstream ss(cmd);
-    ss >> channel >> mode;
-    User& user = this->users[clientFd];
-    Channel& chan = this->channels[channel];
-    if (cmd.empty())
-        sendErrRep(650, clientFd, "MODE", "", "");
-    else if (chan.getName() != channel)
-        sendErrRep(403, clientFd, "MODE", "" , channel);
-    else if (mode.empty())
-        emptyMode(channel, clientFd);
-    else if (!user.isInChannel(channel))
-        sendErrRep(442, clientFd, "MODE", user.getNickName(), channel);
-    else if (!user.getIsConnected())
-        sendErrRep(451, clientFd, "MODE", "", "");
-    else if (!chan.isOperator(clientFd))
-        sendErrRep(482, clientFd, "MODE", user.getNickName(), channel);
-    else if (std::strlen(mode.c_str()) == 2)
-    {   
-        if (c == 2 && (cmd.find("+i") != std::string::npos || cmd.find("-i") != std::string::npos))
-            i_mode(channel, mode, clientFd);
-        else if (c <= 3 && (cmd.find("+o") != std::string::npos || cmd.find("-o") != std::string::npos))
-            o_mode(clientFd, cmd);
-        else if (c >= 2 && (cmd.find("+l") != std::string::npos || cmd.find("-l") != std::string::npos))
-            l_mode(clientFd, cmd);
-        else if (c == 2 && (cmd.find("+t") != std::string::npos || cmd.find("-t") != std::string::npos))
-            t_mode(channel, mode, clientFd);
-        else if (c >= 2 && (cmd.find("+k") != std::string::npos || cmd.find("-k") != std::string::npos))
-            k_mode(cmd, clientFd);
-        else
-            sendErrRep(472, clientFd, "MODE", mode , channel);
-    }
-    else
-        sendErrRep(472, clientFd, "MODE", mode, channel);
+    if (c == 'i' || c == 'o' || c == 'l' || c == 't' || c == 'k' || c == 'v')
+        return true;
+    return false;
 }
 
-void    Server::k_mode(std::string cmd, int clientFd)
+void    Server::cmdMode(int clientFd, std::string cmd)
 {
-    std::string channel, mode, key;
+    char sign = '+';
+    if (cmd.empty())
+        {sendErrRep(650, clientFd, "MODE", "", "");return;}
+    std::string channel, mode, params;   
     std::stringstream ss(cmd);
-    ss >> channel >> mode;
-    std::getline(ss, key);
-    Channel& chan = this->channels[channel];
-    if (!key.empty())
+    ss >> channel;
+    
+    if (this->channels.find(channel) == this->channels.end())
+        {sendErrRep(403, clientFd, "MODE", "", channel);return;}
+    
+    ss >> mode;
+    std::getline(ss, params);
+    std::stringstream ss2(params);
+    for(size_t i = 0; i < mode.length(); i++)
     {
-        if (mode == "+k")
+        if (mode[i] == '+' || mode[i] == '-')
+            sign = mode[i];
+        else if (is_valid_mode(mode[i]))
+        {
+            if (mode[i] == 'i')
+                i_mode(channel, sign, clientFd);
+            if (mode[i] == 'o')
+                o_mode(clientFd, sign, channel, ss2);
+            if (mode[i] == 'l')
+                l_mode(clientFd, sign, channel, ss2);
+            if (mode[i] == 't')
+                t_mode(channel, sign, clientFd);
+            if (mode[i] == 'k')
+                k_mode(clientFd, sign, channel, ss2);
+            if (mode[i] == 'v')
+            {
+                std::string msg( "Voice mode is not supported by this server");
+                sendErrRep(696, clientFd, "MODE", channel, msg);
+            }
+        }
+        else
+            sendErrRep(472, clientFd, "MODE", std::string (1,mode[i]), channel);
+    }
+}
+
+
+// void    Server::k_mode(std::string cmd, int clientFd)
+// {
+//     std::string channel, mode, key;
+//     std::stringstream ss(cmd);
+//     ss >> channel >> mode;
+//     std::getline(ss, key);
+//     Channel& chan = this->channels[channel];
+//     if (!key.empty())
+//     {
+//         if (mode == "+k")
+//         {
+//             chan.setKey(key);
+//             chan.setMode(Channel::KEY);
+//             printModemessage(channel, "+k", clientFd);
+//         }
+//         else if (mode == "-k" && chan.getMode() & Channel::KEY)
+//         {
+//             if (std::strcmp(chan.getKey().c_str(), key.c_str()) == 0)
+//             {
+//                 chan.unsetMode(Channel::KEY);
+//                 chan.setKey(""); 
+//                 printModemessage(channel, "-k", clientFd);
+//             }
+//             else
+//                 sendErrRep(467, clientFd, "MODE", "", channel);
+//         }
+//     }
+//     else
+//     {
+//         std::string message = ":irc.leet.com 696 " + this->users[clientFd].getNickName() + " " + channel + " k * You must specify a parameter for the key mode. Syntax: <key>.\r\n";
+//         send(clientFd, message.c_str(), message.size(), 0);
+//     }
+// }
+
+void Server::k_mode(int clientFd, char sign, std::string channel, std::stringstream &ss)
+{
+    Channel& chan = this->channels[channel];
+    std::string key;
+    if (sign == '+' && !(chan.getMode() & Channel::KEY))
+    {
+        std::ws (ss);
+        std::getline(ss, key);
+        if (!key.empty())
         {
             chan.setKey(key);
             chan.setMode(Channel::KEY);
             printModemessage(channel, "+k", clientFd);
         }
-        else if (mode == "-k" && chan.getMode() & Channel::KEY)
+        else
         {
-            if (std::strcmp(chan.getKey().c_str(), key.c_str()) == 0)
-            {
-                chan.unsetMode(Channel::KEY);
-                chan.setKey(""); 
-                printModemessage(channel, "-k", clientFd);
-            }
-            else
-                sendErrRep(467, clientFd, "MODE", "", channel);
+            std::string message = ":irc.leet.com 696 " + this->users[clientFd].getNickName() + " " + channel + " k * You must specify a parameter for the key mode. Syntax: <key>.\r\n";
+            send(clientFd, message.c_str(), message.size(), 0);
         }
     }
-    else
+    else if (sign == '-' && chan.getMode() & Channel::KEY)
     {
-        std::string message = ":irc.leet.com 696 " + this->users[clientFd].getNickName() + " " + channel + " k * You must specify a parameter for the key mode. Syntax: <key>.\r\n";
-        send(clientFd, message.c_str(), message.size(), 0);
+        chan.unsetMode(Channel::KEY);
+        chan.setKey("");
+        printModemessage(channel, "-k", clientFd);
     }
 }
 

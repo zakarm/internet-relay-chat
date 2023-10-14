@@ -1,0 +1,38 @@
+void    Server::cmdMode(int clientFd, std::string cmd)
+{
+    int c = count(cmd);
+    std::string channel, mode;
+    std::stringstream ss(cmd);
+    ss >> channel >> mode;
+    User& user = this->users[clientFd];
+    Channel& chan = this->channels[channel];
+    if (cmd.empty())
+        sendErrRep(650, clientFd, "MODE", "", "");
+    else if (chan.getName() != channel)
+        sendErrRep(403, clientFd, "MODE", "" , channel);
+    else if (mode.empty())
+        emptyMode(channel, clientFd);
+    else if (!user.isInChannel(channel))
+        sendErrRep(442, clientFd, "MODE", user.getNickName(), channel);
+    else if (!user.getIsConnected())
+        sendErrRep(451, clientFd, "MODE", "", "");
+    else if (!chan.isOperator(clientFd))
+        sendErrRep(482, clientFd, "MODE", user.getNickName(), channel);
+    else if (std::strlen(mode.c_str()) == 2)
+    {   
+        if (c == 2 && (cmd.find("+i") != std::string::npos || cmd.find("-i") != std::string::npos))
+            i_mode(channel, mode, clientFd);
+        else if (c <= 3 && (cmd.find("+o") != std::string::npos || cmd.find("-o") != std::string::npos))
+            o_mode(clientFd, cmd);
+        else if (c >= 2 && (cmd.find("+l") != std::string::npos || cmd.find("-l") != std::string::npos))
+            l_mode(clientFd, cmd);
+        else if (c == 2 && (cmd.find("+t") != std::string::npos || cmd.find("-t") != std::string::npos))
+            t_mode(channel, mode, clientFd);
+        else if (c >= 2 && (cmd.find("+k") != std::string::npos || cmd.find("-k") != std::string::npos))
+            k_mode(cmd, clientFd);
+        else
+            sendErrRep(472, clientFd, "MODE", mode , channel);
+    }
+    else
+        sendErrRep(472, clientFd, "MODE", mode, channel);
+}
