@@ -85,7 +85,6 @@ void Server::requests(int indexClient)
                     if (command.find('\r') != std::string::npos)
                         command = command.substr(0, command.find('\r'));
                     runCommand(this->pfds[indexClient].fd, command);
-                    std::cout << "Buffer : " << command << std::endl;
                 }
                 data.clear();
             }

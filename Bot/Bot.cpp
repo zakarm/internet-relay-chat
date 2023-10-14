@@ -4,11 +4,10 @@
 /*                        Constructors                        */
 /**************************************************************/
 
-Bot::Bot(int port, std::string address, std::string password)
+Bot::Bot(int port, std::string address, std::string password, std::string nickName) : nickName(nickName)
 {
     this->port = port;
     this->password = password;
-    this->nickName = "bot";
     this->userName = "bot";
     this->realName = "bot";
     this->serverName = "bot";
@@ -44,15 +43,22 @@ void port_check(const char *port)
 
 void Bot::connectToServer()
 {
-    if (connect(this->clientSocket, (struct sockaddr *)&this->clientAddr, this->socketLen) < 0)
+    if (this->nickName.empty())
+    {
+        std::cerr << RED << "Error: empty nickname" << DEFAULT << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    else if (connect(this->clientSocket, (struct sockaddr *)&this->clientAddr, this->socketLen) < 0)
     {
         std::cerr << RED << "Error: connect failed" << DEFAULT << std::endl;
         exit(EXIT_FAILURE);
     }
     std::string pass = "PASS "+ this->password +"\r\n";
     send(this->clientSocket, pass.c_str(), pass.size(),0);
-    std::string hand = "*bot* *bot*\r\n";
-    send(this->clientSocket, hand.c_str(), hand.size(), 0);
+    std::string user = "USER " + this->userName + "\r\n";
+    send(this->clientSocket, user.c_str(), user.size(), 0);
+    std::string nick = "NICK " + this->nickName + "\r\n";
+    send(this->clientSocket, nick.c_str(), nick.size(), 0);
     for (;;)
     {   
         char buffer[1024];

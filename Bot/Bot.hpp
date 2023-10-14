@@ -17,7 +17,7 @@ class Bot
         std::string lastSenderNick;
 
     public:
-        Bot(int port, std::string address, std::string password);
+        Bot(int port, std::string address, std::string password, std::string nickName);
         ~Bot();
         void connectToServer();
         void runCommand(std::string data);
