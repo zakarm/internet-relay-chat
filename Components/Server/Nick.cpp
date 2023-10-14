@@ -14,7 +14,7 @@ void Server::cmdNick(int clientFd, std::string data)
         sendErrRep(431, clientFd, "NICK", "", "");
     else if (!validNick(nickName) )
         sendErrRep(432, clientFd, "NICK", "", "");
-    else if (!checkDuplicateNick(nickName) || nickName == "bot")
+    else if (!checkDuplicateNick(nickName))
         sendErrRep(433, clientFd, "NICK", "", "");
     else
     {

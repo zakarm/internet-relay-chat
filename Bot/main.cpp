@@ -4,13 +4,13 @@ int main (int argc, char **argv)
 {
     try
     {
-        if (argc != 4)
+        if (argc != 5)
         {
             std::cerr << RED << "Error: Invalid args" << DEFAULT << std::endl;
             exit(0);
         }
         port_check(argv[1]);
-        Bot bot(atoi(argv[1]), argv[2], argv[3]);
+        Bot bot(atoi(argv[1]), argv[2], argv[3], argv[4]);
     }
     catch(std::exception &ex)
     {

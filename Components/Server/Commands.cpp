@@ -61,27 +61,6 @@ void Server::cmdBot(int clientFd, std::string command)
     }
 }
 
-void Server::cmdAuthBot(int clientFd, std::string command)
-{
-    
-    if (command == "*bot*")
-    {
-        if (this->users.find(clientFd) != this->users.end())
-        {
-            if (!checkDuplicateNick("bot"))
-            {
-                sendErrRep(433, clientFd, "NICK", "", "");
-                return ;
-            }
-        }
-        this->users[clientFd].setNickName("bot");
-        this->users[clientFd].setUserName("bot");
-        this->users[clientFd].setRealName("bot");
-        this->nicks.insert(std::make_pair("bot", clientFd));
-        authenticate(clientFd);
-    }
-}
-
 void Server::runCommand(int clientFd, std::string command)
 {
     if (command.empty())
@@ -100,7 +79,6 @@ void Server::runCommand(int clientFd, std::string command)
     cmds["user"] = &Server::cmdUser; cmds["topic"] = &Server::cmdTopic; cmds["invite"] = &Server::cmdInvite;
     cmds["kick"] = &Server::cmdKick; cmds["privmsg"] = &Server::cmdPrivMsg; cmds["join"] = &Server::cmdJoin;
     cmds["part"] = &Server::cmdLeave; cmds["bot"] = &Server::cmdBot; cmds["mode"] = &Server::cmdMode;
-    cmds["*bot*"] = &Server::cmdAuthBot;
     std::map<std::string, void (Server::*)(int, std::string)>::iterator it;
     it = cmds.find(c);
     (it == cmds.end()) ? sendErrRep(421, clientFd, cmdName , this->users.find(clientFd)->second.getNickName(), "") : (this->*it->second)(clientFd, cmdParam);
