@@ -19,7 +19,12 @@ void Server::cmdPass(int clientFd, std::string data)
 
     std::stringstream err;
     if (data.empty())
+    {
         sendErrRep(461, clientFd, "PASS", "", "");
+        std::string err;
+        err = ":irc.leet.com 650 PASS <password>\r\n";
+        send(clientFd, err.c_str(), err.size(), 0);
+    }
     else if (this->users.find(clientFd)->second.getIsConnected())
         sendErrRep(462, clientFd, "PASS", "", "");
     else if (!checkPass(data))

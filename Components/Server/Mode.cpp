@@ -21,7 +21,7 @@ void    Server::cmdMode(int clientFd, std::string cmd)
 {
     char sign = '+';
     if (cmd.empty())
-        {sendErrRep(650, clientFd, "MODE", "", "");return;}
+        {sendErrRep(461, clientFd, "MODE", "", "");sendErrRep(650, clientFd, "MODE", "", "");return;}
     std::string channel, mode, params;   
     std::stringstream ss(cmd);
     ss >> channel;
