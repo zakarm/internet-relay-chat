@@ -55,24 +55,6 @@ void Server::clientDisconnected(int clientFd)
     }
 }
 
-std::string Server::joinBuffers(int indexClient, char *buffer)
-{
-    if (strlen(buffer) > 0 && buffer[strlen(buffer) - 1] != '\n')
-        this->buffring[this->pfds[indexClient].fd] += buffer;
-    else
-    {
-        this->buffring[this->pfds[indexClient].fd] += buffer;
-        std::string command = this->buffring[this->pfds[indexClient].fd];
-        this->buffring[this->pfds[indexClient].fd].clear();
-        if (command.find('\n') != std::string::npos)
-            command = command.substr(0, command.find('\n'));
-        if (command.find('\r') != std::string::npos)
-            command = command.substr(0, command.find('\r'));
-        return (command);
-    }
-    return ("");
-}
-
 void Server::requests(int indexClient)
 {
     if (this->pfds[indexClient].revents & (POLLHUP | POLLERR))
@@ -87,8 +69,28 @@ void Server::requests(int indexClient)
         else if (r <= 0)
             clientDisconnected(this->pfds[indexClient].fd);
         else
-            runCommand(this->pfds[indexClient].fd, joinBuffers(indexClient, buffer));
-        std::cout <<"buffer: " << buffer << std::endl;
+        {
+            std::string command = "";
+            if (strlen(buffer) > 0 && buffer[strlen(buffer) - 1] != '\n')
+                this->buffring[this->pfds[indexClient].fd] += buffer;
+            else
+            {
+                
+                this->buffring[this->pfds[indexClient].fd] += buffer;
+                std::string command = this->buffring[this->pfds[indexClient].fd];
+                std::stringstream data(command);
+                this->buffring[this->pfds[indexClient].fd].clear();
+                while (std::getline(data, command, '\n'))
+                {
+                    if (command.find('\r') != std::string::npos)
+                        command = command.substr(0, command.find('\r'));
+                    runCommand(this->pfds[indexClient].fd, command);
+                    std::cout << "Buffer : " << command << std::endl;
+                }
+                data.clear();
+            }
+            
+        }
     }
 }
 

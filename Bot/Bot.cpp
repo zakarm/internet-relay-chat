@@ -51,7 +51,6 @@ void Bot::connectToServer()
     }
     std::string pass = "PASS "+ this->password +"\r\n";
     send(this->clientSocket, pass.c_str(), pass.size(),0);
-    usleep(3000);
     std::string hand = "*bot* *bot*\r\n";
     send(this->clientSocket, hand.c_str(), hand.size(), 0);
     for (;;)

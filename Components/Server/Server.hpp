@@ -46,7 +46,6 @@ class Server{
         void acceptAndDecline();
         void multipleClients();
         void clientDisconnected(int clientFd);
-        std::string joinBuffers(int indexClient, char *buffer);
         void requests(int indexClient);
         void runServer();
 
