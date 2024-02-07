@@ -9,7 +9,7 @@ Server::Server(int port, std::string password) : port(port), password(password)
     this->serverSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (this->serverSocket == -1)
         std::runtime_error("Error: socket failed");
-    memset(&this->serverAddr, 0, sizeof(this->serverAddr));
+    std::memset(&this->serverAddr, 0, sizeof(this->serverAddr));
     this->serverAddr.sin_family = AF_INET;
     this->serverAddr.sin_port = htons(port);
     this->serverAddr.sin_addr.s_addr = INADDR_ANY;

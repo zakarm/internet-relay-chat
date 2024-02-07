@@ -30,7 +30,7 @@ void Server::cmdJoin(int clientFd, std::string data)
             sendErrRep(461, clientFd, "JOIN", "", "");
             continue;
         }
-        if (channel[0] != '#')
+        if (channel[0] != '#' || channel.size() == 1)
         {
             std::stringstream err;
             err << ":irc.leet.com 476 JOIN " << channel << " " << this->errRep.find(476)->second << "\r\n";

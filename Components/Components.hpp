@@ -30,6 +30,7 @@
 #include <algorithm>
 #include <cstring>
 #include <netinet/tcp.h>
+#include <ctime>
 
 typedef struct s_message
 {
