@@ -22,12 +22,15 @@ void    Server::cmdMode(int clientFd, std::string cmd)
     char sign = '+';
     if (cmd.empty())
         {sendErrRep(461, clientFd, "MODE", "", "");sendErrRep(650, clientFd, "MODE", "", "");return;}
+    if (this->users.find(clientFd)->second.getIsConnected() == false)
+        {sendErrRep(451, clientFd, "MODE", "", "");return;}
     std::string channel, mode, params;   
     std::stringstream ss(cmd);
     ss >> channel;
     if (this->channels.find(channel) == this->channels.end())
         {sendErrRep(403, clientFd, "MODE", "", channel);return;}
-    
+    if (!this->channels[channel].isOperator(clientFd))
+        {sendErrRep(482, clientFd, "MODE", "", channel);return;}
     ss >> mode;
     if (mode.empty())
         {emptyMode(channel, clientFd);return;}
@@ -65,10 +68,10 @@ void Server::k_mode(int clientFd, char sign, std::string channel, std::stringstr
 {
     Channel& chan = this->channels[channel];
     std::string key;
-    if (sign == '+' && !(chan.getMode() & Channel::KEY))
+    std::ws (ss);
+    std::getline(ss, key);
+    if (sign == '+')
     {
-        std::ws (ss);
-        std::getline(ss, key);
         if (!key.empty())
         {
             chan.setKey(key);
@@ -83,16 +86,31 @@ void Server::k_mode(int clientFd, char sign, std::string channel, std::stringstr
     }
     else if (sign == '-' && chan.getMode() & Channel::KEY)
     {
-        chan.unsetMode(Channel::KEY);
-        chan.setKey("");
-        printModemessage(channel, "-k", clientFd);
+        if (chan.getKey() == key || key.empty())
+        {
+            chan.unsetMode(Channel::KEY);
+            chan.setKey("");
+            printModemessage(channel, "-k", clientFd);
+        }
+        else
+            sendErrRep(464, clientFd, "MODE", this->users[clientFd].getNickName(), channel);
     }
 }
+
+bool isAllDigits(const std::string& str) {
+    for (std::string::const_iterator it = str.begin(); it != str.end(); ++it) {
+        if (!std::isdigit(*it)) {
+            return false;
+        }
+    }
+    return true;
+}
+
 
 void Server::l_mode(int clientFd, char sign, std::string channel, std::stringstream &ss)
 {
     Channel& chan = this->channels[channel];
-    if (sign == '+' && !(chan.getMode() & Channel::LIMIT))
+    if (sign == '+')
     {
         std::string limit;
         ss >> limit;
@@ -104,7 +122,7 @@ void Server::l_mode(int clientFd, char sign, std::string channel, std::stringstr
         }
         int max_limit = 30;
         int l = std::atoi(limit.c_str());
-        if (l <= 0 || l > max_limit)
+        if (l <= 0 || l > max_limit || !isAllDigits(limit))
         {
             std::string message = ":irc.leet.com 696 " + this->users[clientFd].getNickName() + "  " + channel + " l " + limit + " :Invalid limit mode parameter. Syntax: <limit>.\r\n";
             send(clientFd, message.c_str(), message.size(), 0);

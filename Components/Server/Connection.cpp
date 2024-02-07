@@ -62,7 +62,7 @@ void Server::requests(int indexClient)
     else if (this->pfds[indexClient].revents & POLLIN)
     {
         char buffer[1000];
-        Utils::ft_memset(buffer, 0, sizeof(buffer));
+        std::memset(buffer, 0, sizeof(buffer));
         int r = recv(this->pfds[indexClient].fd, buffer, sizeof(buffer) - 1, 0);
         if (r > 512)
             std::cout << Utils::getTime() << "buffer limite exceeded by :" << this->users.at(this->pfds[indexClient].fd).getHostName() << std::endl;

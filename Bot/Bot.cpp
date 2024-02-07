@@ -62,7 +62,7 @@ void Bot::connectToServer()
     for (;;)
     {   
         char buffer[1024];
-        Utils::ft_memset(buffer, 0, sizeof(buffer));
+        std::memset(buffer, 0, sizeof(buffer));
         int err = recv(this->clientSocket, buffer, sizeof(buffer), 0);
         if (err > 0)
             runCommand(buffer);
